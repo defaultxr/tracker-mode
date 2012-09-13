@@ -1,4 +1,4 @@
-;;;; tracker.el --- Tracker mode for emacsBPM: 120 Pat: 000/001S Step: 000/016
+;;;; tracker.el --- Tracker mode for emacs
 ;;;; by defaultxr
 
 ;; (let ((inhibit-read-only t))
