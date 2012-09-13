@@ -36,12 +36,12 @@ TODO
 * "init" code (after header but before patterns; elisp that is run whenever the tracker starts to initialize variables and all that jazz)
 * make it possible to "mix" tracker songs (i.e. make tracker-mode able to be invoked upon multiple buffers simultaneously)
 * "goto" keyboard shortcuts
-** C-c g b to go to BPM
-** C-c g s to go to a step
-** C-c g p to go to a pattern
-** C-c g t to go to the title
-** etc
+ * C-c g b to go to BPM
+ * C-c g s to go to a step
+ * C-c g p to go to a pattern
+ * C-c g t to go to the title
+ * etc
 * convenience macro that is applied to the elisp from each step before it is evaluated
-** vars prefixed with % are interpreted as pattern- and step-local vars.
-** functions to make OSC messaging easier
-** functions to make controlling SuperCollider easier
+ * vars prefixed with % are interpreted as pattern- and step-local vars.
+ * functions to make OSC messaging easier
+ * functions to make controlling SuperCollider easier
