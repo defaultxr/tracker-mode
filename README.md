@@ -11,16 +11,17 @@ currently multiple patterns are supported, although the tracker will only loop t
 
 you can use C-c s to start/stop the tracker, C-c i to insert a new pattern, and C-c n or C-c p to view the next or previous patterns, respectively. M-up and M-down will increase or decrease the number under the point.
 
-this is the first major bit of emacs code i've written so expect some (many) things to be awful. i'm aware that emacs is not the best environment to write a tracker in since long calculations could cause delays in the sequence but i've wanted to write something like this for a long time. i'm ok with having less-than-exact timing if it means i will be able to compose sequences out of arbitrary computations.
+this is the first major bit of emacs code i've written so expect some (many) things to be awful. i'm aware that emacs is not the best environment to write a tracker in since long calculations could cause delays in the sequence but i've wanted to write something like this for a long time. i'm ok with having less-than-exact timing if it means i will be able to compose sequences out of arbitrary code.
 
-i'm very open to suggestions for ways to improve the code or use more "standard" elisp practices.
+i'm very open to suggestions for ways to improve this, especially if those improvements do things the "standard" elisp way.
 
-right now tracker.el is usable and fairly bug-free but can't really be used to sequence music yet, as i haven't begun to add the OSC features. there are a lot of things i need to change before i'd recommend it to anybody.
+right now tracker.el is usable and fairly bug-free but actually sequencing music with it is still pretty clumsy, since i haven't begun to add the OSC features. despite this, i've tested it and i made some simple beats with supercollider just by using the sclang-eval-string function in the sequence. there are a lot of features i need to add before i'd recommend the tracker to anyone, though.
 
 TODO
 ====
 
-* tracker-back-to-indent (C-a)
+* use set-buffer in all functions
+* get the tab key to complete
 * detect commented steps (don't treat them as "errors")
 * tracker-comment-step (C-') - should also be able to comment out only a specific line of the step (auto-detect the "correct" thing to do)
 * automatically save "good" elisp for each step in invisible text beneath the "real" step
@@ -33,7 +34,7 @@ TODO
 * add OSC features
 * make sure that if tracker-mode is started from a file that is already a tracker song, it parses the file correctly
 * color each 4th line's numbers (000, 004, 008, 012, 016, etc)
-* "init" code (after header but before patterns; elisp that is run whenever the tracker starts to initialize variables and all that jazz)
+* "init" code: elisp that is run whenever the tracker starts to initialize variables/"loads" a song (after header but before patterns)
 * make it possible to "mix" tracker songs (i.e. make tracker-mode able to be invoked upon multiple buffers simultaneously)
 * fix the overlay (don't use timers to delete it; just update it in tracker-loop)
 * "goto" keyboard shortcuts (bound to M-g)
