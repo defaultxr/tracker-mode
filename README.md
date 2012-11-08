@@ -37,12 +37,6 @@ TODO
 * "init" code: elisp that is run whenever the tracker starts to initialize variables/"loads" a song (after header but before patterns)
 * make it possible to "mix" tracker songs (i.e. make tracker-mode able to be invoked upon multiple buffers simultaneously)
 * fix the overlay (don't use timers to delete it; just update it in tracker-loop)
-* "goto" keyboard shortcuts (bound to M-g)
- * M-g b to go to BPM
- * M-g s to go to a step
- * M-g p to go to a pattern (maybe try to think of another keybinding for this so it doesn't overwrite the default M-g p action)
- * M-g t to go to the title
- * etc
 * convenience macro that is applied to the elisp from each step before it is evaluated
  * vars prefixed with % are interpreted as pattern- and step-local vars.
  * functions to make OSC messaging easier
