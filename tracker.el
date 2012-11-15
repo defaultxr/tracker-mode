@@ -468,6 +468,10 @@
       (+ bottom (random (1+ (- top bottom))))
     (random (1+ bottom))))
 
+(defun choice (&rest choices)
+  "Returns a random argument."
+  (nth (random (length choices)) choices))
+
 ;;; change numbers
 
 (defun tracker-change-number (arg)

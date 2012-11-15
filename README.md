@@ -28,6 +28,8 @@ TODO
 * tracker-repeat-song variable (shows up as "R" in the status field); loops song after last pattern; t by default
 * fix syntax coloring (should inherit from emacs-lisp-mode)
 * M-n and M-p to go through fields
+* make clone- & delete-pattern functions
+* make pattern resizing function
 * change status line (only the BPM field should be editable by the user)
 * user should not be able to delete step numbers or "Pattern 0:" in the patterns
 * add OSC features
