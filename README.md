@@ -20,12 +20,11 @@ right now tracker.el is usable and fairly bug-free but actually sequencing music
 TODO
 ====
 
-* use set-buffer in all functions
+* don't let tracker-mode's edits to the buffer affect the undo tree [is this possible?]
 * get the tab key to complete
 * detect commented steps (don't treat them as "errors")
 * tracker-comment-step (C-') - should also be able to comment out only a specific line of the step (auto-detect the "correct" thing to do)
 * automatically save "good" elisp for each step in invisible text beneath the "real" step
-* make latching functional (progress to next pattern automatically when it's off)
 * tracker-repeat-song variable (shows up as "R" in the status field); loops song after last pattern; t by default
 * fix syntax coloring (should inherit from emacs-lisp-mode)
 * M-n and M-p to go through fields
