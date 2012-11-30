@@ -3,7 +3,7 @@
 
 ;;;; load stuff
 
-(require 'osc)
+;; (require 'osc)
 
 ;;;; global variables
 
@@ -13,10 +13,10 @@
 (defvar tracker-buffer nil
   "The buffer that the tracker is running in.")
 
-(defvar tracker-osc-client (osc-make-client "localhost" 57110)
-  "OSC Client for the tracker.")
+;; (defvar tracker-osc-client (osc-make-client "localhost" 57110)
+;;   "OSC Client for the tracker.")
 
-;;;; osc.el doesn't seem to work...
+;;; osc.el doesn't seem to work...
 
 ;; (setq my-client (osc-make-client "localhost" 57110))
 ;; (osc-send-message my-client "/s_new" "default" 3000 0 1)
@@ -29,8 +29,6 @@
 ;; (osc-send-message mclient "/hi" -2)
 ;; (process-contact my-client)
 ;; (delete-process mclient)
-
-;;;;
 
 ;;;; keymap
 
@@ -66,6 +64,12 @@
   (let ((overlay (make-overlay start end))) 
     (overlay-put overlay 'face 'secondary-selection)
     (run-with-timer (or timeout 0.5) nil 'delete-overlay overlay)))
+
+(defmacro without-undo (&rest body)
+  "Perform BODY without modifying the buffer's undo list."
+  ;; there might be a better way to do this...
+  `(let ((buffer-undo-list t))
+     ,@body))
 
 ;;;; functions to move the point around
 
@@ -121,17 +125,11 @@
     (goto-char (progn (search-forward "Step: ")
                       (1+ (search-backward " " nil nil 3))))))
 
-(defun tracker-goto-currently-viewed-step ()
-  "Places the point at the beginning of the current step field."
-  (set-buffer tracker-buffer)
-  (goto-char (point-min))
-  (search-forward " Step: "))
-
 (defun tracker-goto-currently-playing-step ()
   "Places the point at the beginning of the currently playing step field."
   (set-buffer tracker-buffer)
-  (tracker-goto-currently-viewed-step)
-  (search-forward "/"))
+  (goto-char (point-min))
+  (search-forward " Step: "))
 
 (defun tracker-goto-total-number-of-steps ()
   "Places the point at the total number of steps field."
@@ -208,140 +206,128 @@
 (defun tracker-make-interface-element (start end &optional name)
   "Make a block of text read-only & intangible."
   (set-buffer tracker-buffer)
-  (add-text-properties start end '(intangible (or name t) read-only (or name t) rear-nonsticky t)))
+  (without-undo
+   (add-text-properties start end '(intangible (or name t) read-only (or name t) rear-nonsticky t))))
 
 (defun tracker-chars-until (string)
   "Counts the number of characters until the first occurance of STRING."
   (set-buffer tracker-buffer)
   (1- (- (save-excursion (search-forward string)) (point))))
 
-(defun tracker-make-header (&optional steps)
+(defun tracker-make-header ()
   "Write a header for the tracker and apply text properties to it."
   (set-buffer tracker-buffer)
-  (save-excursion
-    (goto-char (point-min))
-    (unless (looking-at "^TRACKER: ") ; title
-      (insert (concat "TRACKER: Untitled" (string ?\n))))
-    (goto-line 2)
-    (unless (looking-at "^BPM: [0-9]+ Pat: [0-9]+/[0-9]+/[0-9]+ [PLSF]+ Step: [0-9]+/[0-9]+/[0-9]+")
-      (insert (concat "BPM: 120 Pat: 0/0/0 S Step: 0/0/16" (string ?\n ?\n)))) ; pat and step are in the format 'point/tracker playing/total'
-    (goto-char (point-min))
-    (flet ((make-string-into-interface (string &optional name)
-                                       (let ((item (search-forward string)))
-                                         (tracker-make-interface-element (- item (length string)) item name))))
-      (make-string-into-interface "TRACKER: " 'tracker-mark)
-      (backward-char)
-      (make-string-into-interface "BPM: " 'bpm-mark)
-      (make-string-into-interface " Pat: " 'pat-mark)
-      (make-string-into-interface "/" 'slash-mark)
-      (make-string-into-interface "/" 'slash-mark-2)
-      (tracker-make-interface-element (1- (search-forward " ")) (search-forward " ") 'status)
-      (make-string-into-interface "Step: " 'step-mark)
-      (make-string-into-interface "/" 'slash-mark-3)
-      (make-string-into-interface "/" 'slash-mark-4)))
-  (goto-char (point-min))
-  (dotimes (foo 3)
-    (next-line)))
+  (without-undo
+   (save-excursion
+     (goto-char (point-min))
+     (unless (looking-at "^TRACKER: ") ; title
+       (insert (concat "TRACKER: Untitled" (string ?\n))))
+     (goto-line 2)
+     (unless (looking-at "^BPM: [0-9]+ Pat: [0-9]+/[0-9]+/[0-9]+ [PLSF]+ Step: [0-9]+/[0-9]+/[0-9]+")
+       (insert (concat "BPM: 120 Pat: 0/0/0 S Step: 0/16" (string ?\n ?\n)))) ; pat and step are in the format 'point/tracker playing/total'
+     (goto-char (point-min))
+     (flet ((make-string-into-interface (string &optional name)
+                                        (let ((item (search-forward string)))
+                                          (tracker-make-interface-element (- item (length string)) item name))))
+       (make-string-into-interface "TRACKER: " 'tracker-mark)
+       (backward-char)
+       (make-string-into-interface "BPM: " 'bpm-mark)
+       (make-string-into-interface " Pat: " 'pat-mark)
+       (make-string-into-interface "/" 'slash-mark)
+       (make-string-into-interface "/" 'slash-mark-2)
+       (tracker-make-interface-element (1- (search-forward " ")) (search-forward " ") 'status)
+       (make-string-into-interface "Step: " 'step-mark)
+       (make-string-into-interface "/" 'slash-mark-3)))
+   (goto-char (point-min))
+   (dotimes (foo 3)
+     (next-line))))
 
 (defun tracker-get-bpm ()
   "Returns the BPM."
   (set-buffer tracker-buffer)
-  (save-excursion
-    (string-to-number (buffer-substring (tracker-goto-bpm) (1- (search-forward " "))))))
+  (without-undo
+   (save-excursion
+     (string-to-number (buffer-substring (tracker-goto-bpm) (1- (search-forward " ")))))))
 
 (defun tracker-set-status (status)
   "Changes the status indicator."
   (set-buffer tracker-buffer)
-  (save-excursion
-    (let ((inhibit-read-only t)
-          (inhibit-point-motion-hooks t))
-      (tracker-goto-status)
-      (delete-char (- (- (save-excursion (search-forward "Step: ")) 6) (point)))
-      (insert (propertize (concat status " ") 'intangible 'status 'read-only 'status 'rear-nonsticky t)))))
+  (without-undo
+   (save-excursion
+     (let ((inhibit-read-only t)
+           (inhibit-point-motion-hooks t))
+       (tracker-goto-status)
+       (delete-char (- (- (save-excursion (search-forward "Step: ")) 6) (point)))
+       (insert (propertize (concat status " ") 'intangible 'status 'read-only 'status 'rear-nonsticky t))))))
 
 (defun tracker-update-number-of-patterns ()
   "Updates the tracker status line with the correct number of patterns."
   (set-buffer tracker-buffer)
-  (save-excursion
-    (let ((inhibit-read-only t)
-          (inhibit-point-motion-hooks t))
-      (tracker-goto-total-number-of-patterns)
-      (delete-char (tracker-chars-until " "))
-      (insert (number-to-string (tracker-count-number-of-patterns))))))
-
-(defun tracker-make-pattern (number steps)
-  "Write a specific pattern if it does not exist. You should probably call `tracker-make-new-pattern' instead of this."
-  (set-buffer tracker-buffer)
-  (save-excursion
-    (goto-char (point-min))
-    (when (not (tracker-goto-pattern number))
-      (goto-char (save-excursion
-                   (goto-char (point-min))
-                   (let ((res (search-forward "Scratch:\n\n" nil t)))
-                     (if res
-                         (- res 10)
-                       (point-max)))))
-      (insert (propertize
-               (concat "Pattern " (number-to-string number) ":\n"
-                       (let ((result ""))
-                         (dotimes (step steps result)
-                           (setf result (concat result (format "%03d  %s" step (string ?\n)))))
-                         result)
-                       (string ?\n ?\n))
-               'invisible (intern (concat "tracker-pattern-" (number-to-string number)))))
-      (tracker-update-number-of-patterns)
-      (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number)))))))
+  (without-undo
+   (save-excursion
+     (let ((inhibit-read-only t)
+           (inhibit-point-motion-hooks t))
+       (tracker-goto-total-number-of-patterns)
+       (delete-char (tracker-chars-until " "))
+       (insert (number-to-string (tracker-count-number-of-patterns)))))))
 
 ;;;; main loop and associated stuff
 
 (defun tracker-mark-step (step type)
   (set-buffer tracker-buffer)
-  (save-excursion
-    (when (tracker-goto-step step)
-      (forward-char 3)
-      (delete-char 1)
-      (insert (case type
-                ('error "E")
-                ('correct " "))))))
+  (without-undo
+   (save-excursion
+     (when (tracker-goto-step step)
+       (forward-char 3)
+       (delete-char 1)
+       (insert (case type
+                 ('error "E")
+                 ('correct " ")))))))
 
 (defun tracker-step (step pattern)
   "Highlights and evaluates the code in one step of the tracker."
   (set-buffer tracker-buffer)
-  (save-excursion
-    (set-buffer tracker-buffer)
-    (tracker-goto-currently-playing-step)
-    (delete-char (tracker-chars-until "/"))
-    (insert (number-to-string step))
-    (tracker-goto-currently-playing-pattern)
-    (delete-char (tracker-chars-until "/"))
-    (insert (number-to-string pattern))
-    (let ((old-pat (tracker-current-pattern)))
-      (tracker-view-pattern pattern)
-      (when (tracker-goto-step step)
-        (forward-char 5)
-        (let ((result (condition-case nil
-                          (save-excursion
-                            (let ((start (point)))
-                              (when (looking-at "(")
-                                (forward-sexp)
-                                (point))))
-                        (error nil)))
-              (delay (tracker-next-step-delay (tracker-get-bpm)))
-              (bol (save-excursion (beginning-of-line) (point))))
-          (if result
-              (progn ;; no error upon reading
-                (tracker-mark-step step 'correct)
-                (tracker-highlight-region bol result delay)
-                (let ((elisp (read (buffer-substring (point) result))))
-                  (eval elisp)
-                  ;; TODO: save a copy of this one in case it stops working
-                  ))
-            (progn ;; error while reading
-              (tracker-mark-step step 'error)
-              (tracker-highlight-region bol (point) delay)
-              ;; TODO: try to reload last working one
-              ))))
-      (tracker-view-pattern old-pat))))
+  (without-undo
+   (save-excursion
+     (set-buffer tracker-buffer)
+     (tracker-goto-currently-playing-step)
+     (delete-char (tracker-chars-until "/"))
+     (insert (number-to-string step))
+     (tracker-goto-currently-playing-pattern)
+     (delete-char (tracker-chars-until "/"))
+     (insert (number-to-string pattern))
+     (let ((old-pat (tracker-current-pattern)))
+       (tracker-view-pattern pattern)
+       (when (tracker-goto-step step)
+         (forward-char 5)
+         (let* ((result (condition-case nil
+                            (save-excursion
+                              (let ((start (point)))
+                                (when (looking-at "(")
+                                  (forward-sexp)
+                                  (point))))
+                          (error nil)))
+                (delay (tracker-next-step-delay (tracker-get-bpm)))
+                (bol (save-excursion (beginning-of-line) (point)))
+                (is-valid (and result (condition-case nil
+                                          (read (buffer-substring (point) result))
+                                        (error nil)))))
+           (if is-valid
+               (progn ;; no error upon reading
+                 (tracker-mark-step step 'correct)
+                 (tracker-highlight-region bol result delay)
+                 (let ((elisp (condition-case nil
+                                  (read (buffer-substring (point) result))
+                                (error nil))))
+                   (eval elisp)
+                   ;; TODO: save a copy of this one in case it stops working
+                   ))
+             (progn ;; error while reading
+               (tracker-mark-step step 'error)
+               (tracker-highlight-region bol (point) delay)
+               ;; TODO: try to reload last working one
+               ))))
+       (tracker-view-pattern old-pat)))))
 
 (defun tracker-loop (step pattern)
   "The main loop of the tracker."
@@ -370,36 +356,73 @@
        (list (prefix-numeric-value current-prefix-arg))
      (list (read-number "Steps: " 16))))
   (set-buffer tracker-buffer)
-  (tracker-make-pattern (tracker-number-of-patterns) steps))
+  (without-undo
+   (let ((number (tracker-number-of-patterns)))
+     (save-excursion
+       (goto-char (point-min))
+       (when (not (tracker-goto-pattern number))
+         (goto-char (save-excursion
+                      (goto-char (point-min))
+                      (let ((res (search-forward "Scratch:\n\n" nil t)))
+                        (if res
+                            (- res 10)
+                          (point-max)))))
+         (insert (propertize
+                  (concat "Pattern " (number-to-string number) ":\n"
+                          (let ((result ""))
+                            (dotimes (step steps result)
+                              (setf result (concat result (format "%03d  %s" step (string ?\n)))))
+                            result)
+                          (string ?\n ?\n))
+                  'invisible (intern (concat "tracker-pattern-" (number-to-string number)))))
+         (tracker-update-number-of-patterns)
+         (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number)))))))))
+
+(defun tracker-delete-pattern ()
+  "Delete the currently viewed pattern."
+  ;; FIX: This is not finished. fix tracker-view-pattern and then finish this function.
+  (interactive)
+  (set-buffer tracker-buffer)
+  (without-undo
+   (save-excursion
+     (let* ((start (progn (goto-char (point-min))
+                          (search-forward (concat "Pattern " (number-to-string (tracker-current-pattern)) ":\n"))
+                          (previous-line)
+                          (point)))
+            (end (search-forward "\n\n")))
+       (goto-char start)
+       (delete-char (- end start))))))
 
 (defun tracker-view-pattern (number)
   "Switches the view to the specified pattern."
+  ;; FIX: if the number is -1, show all.
   (interactive "NPattern: ")
   (set-buffer tracker-buffer)
-  (save-excursion
-    (goto-char (point-min))
-    (let ((old-spec buffer-invisibility-spec))
-      (setf buffer-invisibility-spec nil)
-      (let ((str (concat "Pattern " (number-to-string (tracker-current-pattern)) ":\n"))
-            (end (save-excursion
-                   (if (search-forward (concat "Pattern " (number-to-string (1+ (tracker-current-pattern))) ":\n") nil t)
-                       (progn (backward-char 2)
-                              (beginning-of-line)
-                              (point))
-                     (progn (search-forward "Scratch:\n")
-                            (backward-char 2)
-                            (beginning-of-line)
-                            (point))))))
-        (add-text-properties (- (search-forward str) (length str)) end
-                             (list 'invisible (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))))
-      (setf buffer-invisibility-spec old-spec)))
-  (let ((number (max (min number (1- (tracker-number-of-patterns))) 0)))
-    (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))
-    (remove-from-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number))))
-    (save-excursion
-      (tracker-goto-currently-viewed-pattern)
-      (delete-char (tracker-chars-until "/"))
-      (insert (number-to-string number)))))
+  (without-undo
+   (save-excursion
+     (goto-char (point-min))
+     (let ((old-spec buffer-invisibility-spec))
+       (setf buffer-invisibility-spec nil)
+       (let ((str (concat "Pattern " (number-to-string (tracker-current-pattern)) ":\n"))
+             (end (save-excursion
+                    (if (search-forward (concat "Pattern " (number-to-string (1+ (tracker-current-pattern))) ":\n") nil t)
+                        (progn (backward-char 2)
+                               (beginning-of-line)
+                               (point))
+                      (progn (search-forward "Scratch:\n")
+                             (backward-char 2)
+                             (beginning-of-line)
+                             (point))))))
+         (add-text-properties (- (search-forward str) (length str)) end
+                              (list 'invisible (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))))
+       (setf buffer-invisibility-spec old-spec)))
+   (let ((number (max (min number (1- (tracker-number-of-patterns))) 0)))
+     (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))
+     (remove-from-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number))))
+     (save-excursion
+       (tracker-goto-currently-viewed-pattern)
+       (delete-char (tracker-chars-until "/"))
+       (insert (number-to-string number))))))
 
 (defun tracker-next-pattern ()
   "Switches the view to the next pattern."
@@ -417,12 +440,13 @@
   "Writes the default template for the tracker."
   (interactive)
   (set-buffer tracker-buffer)
-  (tracker-make-header)
-  (setf buffer-invisibility-spec nil)
-  (tracker-make-new-pattern 16)
-  (remove-from-invisibility-spec 'tracker-pattern-0)
-  (goto-char (point-max))
-  (insert "Scratch:\n\n"))
+  (without-undo
+   (tracker-make-header)
+   (setf buffer-invisibility-spec nil)
+   (tracker-make-new-pattern 16)
+   (remove-from-invisibility-spec 'tracker-pattern-0)
+   (goto-char (point-max))
+   (insert "Scratch:\n\n")))
 
 (defun tracker-latch-pattern ()
   "Toggles the latch."
@@ -478,15 +502,16 @@
   "Increase or decrease a number under the point."
   (interactive "p")
   (set-buffer tracker-buffer)
-  (save-excursion
-    (search-backward-regexp "[^0-9-]")
-    (forward-char)
-    (let* ((start (point))
-           (end (1- (save-excursion (search-forward-regexp "[^0-9-]"))))
-           (string (buffer-substring start end)))
-      (when (not (eq 0 (- end start)))
-        (delete-char (- end start))
-        (insert (number-to-string (+ (or arg 1) (string-to-number string))))))))
+  (without-undo
+   (save-excursion
+     (search-backward-regexp "[^0-9-]")
+     (forward-char)
+     (let* ((start (point))
+            (end (1- (save-excursion (search-forward-regexp "[^0-9-]"))))
+            (string (buffer-substring start end)))
+       (when (not (eq 0 (- end start)))
+         (delete-char (- end start))
+         (insert (number-to-string (+ (or arg 1) (string-to-number string)))))))))
 
 (defun tracker-increase-number (arg)
   "Increase a number under the point."
@@ -508,6 +533,14 @@
     (forward-char 5)))
 
 ;;; supercollider stuff
+;; the osc library doesn't seem to work for me. if it works for you, you might want to redefine these convenience functions.
+;; for example, `synth' wouldn't use `sclang-eval-string', it'd use something like
+;; (osc-send-message my-client "/s_new" synth -1 0 1)
+;; why doesn't the osc library work? i don't know. i've tried debugging it myself and i contacted the author to no avail.
+;; the main problem is that it doesn't seem to actually send messages to any client (it can send messages to itself though)
+;; also, a minor (but fixable) problem i've discovered is that osc.el can't handle negative integers.
+;; this is an issue since supercollider uses -1 to assign a node-id automatically (i.e. so you don't have to specify one)
+;; if you can get the osc library working, please tell me.
 
 (defun sc-symbol (sym)
   (concat "\\" (symbol-name sym)))
@@ -525,6 +558,9 @@
 (defun synth (synth &rest args)
   (let ((args (apply 'sc-arg-list args)))
     (sclang-eval-string (concat "Synth(\\" (symbol-name synth) ", [" args "]);"))))
+
+;; (defmacro retrig (num delay &rest body)
+;;   `(run-with-timer ,delay nil (lambda () ,body)))
 
 ;;;; initialize & register the mode with emacs
 
