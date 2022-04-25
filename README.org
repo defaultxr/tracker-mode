@@ -62,4 +62,4 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 * See also
 
 - [[https://github.com/defaultxr/piano-mode][piano-mode]], my work-in-progress minor mode that turns your computer keyboard into a musical keyboard similar to what some DAWs do. Note that this is in major need of an update, as it doesn't really work very well at the moment...
-- [[https://github.com/defaultxr/cl-patterns][cl-patterns]], my Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptracker~.
+- [[https://github.com/defaultxr/cl-patterns][cl-patterns]], my Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptrack~.
