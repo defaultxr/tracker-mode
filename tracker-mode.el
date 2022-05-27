@@ -202,6 +202,7 @@
 
 (defun tracker-goto-pattern (&optional pattern)
   "Places the point at the end of the \"Pattern N:\" line for the specified pattern. Returns nil if the pattern could not be found."
+  (interactive "NPattern: ")
   (goto-char (point-min))
   (let ((pattern (or pattern (tracker-pattern-under-point))))
     (and (search-forward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t)
@@ -496,36 +497,6 @@
                            (point)))))
     (message "The point does not appear to be in a pattern.")))
 
-;; (defun tracker-view-pattern (number)
-;;   "Switches the view to the specified pattern."
-;;   (interactive "NPattern: ")
-;;   (set-buffer tracker-buffer)
-;;   (tracker-without-undo
-;;    (save-excursion
-;;      (goto-char (point-min))
-;;      (let ((old-spec buffer-invisibility-spec))
-;;        (setf buffer-invisibility-spec nil)
-;;        (let ((str (concat "Pattern " (number-to-string (tracker-current-pattern)) ":\n"))
-;;              (end (save-excursion
-;;                     (if (search-forward (concat "Pattern " (number-to-string (1+ (tracker-current-pattern))) ":\n") nil t)
-;;                         (progn (backward-char 2)
-;;                                (beginning-of-line)
-;;                                (point))
-;;                       (progn (search-forward "Confirmed:\n")
-;;                              (backward-char 2)
-;;                              (beginning-of-line)
-;;                              (point))))))
-;;          (add-text-properties (- (search-forward str) (length str)) end
-;;                               (list 'invisible (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))))
-;;        (setf buffer-invisibility-spec old-spec)))
-;;    (let ((number (max (min number (1- (tracker-number-of-patterns))) 0)))
-;;      (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string (tracker-current-pattern)))))
-;;      (remove-from-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number))))
-;;      (save-excursion
-;;        (tracker-goto-currently-viewed-pattern)
-;;        (delete-char (tracker-chars-until "/"))
-;;        (insert (number-to-string number))))))
-
 (defun tracker-next-pattern ()
   "Switches the view to the next pattern."
   (interactive)
@@ -695,7 +666,7 @@
     (define-key map (kbd "M-g b") 'tracker-goto-bpm)
     (define-key map (kbd "M-g s") 'tracker-goto-step)
     (define-key map (kbd "M-g t") 'tracker-goto-title)
-    (define-key map (kbd "M-g p") 'tracker-view-pattern) ; this overrides the original M-g p action, but i don't think you'll use it in tracker mode anyway... (?)
+    (define-key map (kbd "M-g p") 'tracker-goto-pattern) ; this overrides the original M-g p action, but i don't think you'll use it in tracker mode anyway... (?)
     map)
   "Keymap for `tracker-mode'.")
 
