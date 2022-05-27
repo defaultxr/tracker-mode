@@ -5,7 +5,7 @@
 ;; Author: modula t. <defaultxr@gmail.com>
 ;; Homepage: https://github.com/defaultxr/tracker.el
 ;; Version: 0.7
-;; Package-Requires: ((osc "0.1") (emacs "24.4"))
+;; Package-Requires: ((osc "0.4") (emacs "24.4") cl-lib)
 ;; Keywords: multimedia
 
 ;; This file is not part of GNU Emacs.
