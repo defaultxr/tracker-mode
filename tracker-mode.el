@@ -416,17 +416,19 @@
 (make-variable-buffer-local 'tracker-current-playing-step)
 (set-default 'tracker-current-playing-step nil)
 
-(defun tracker-step (step pattern buffer)
-  "Highlights and plays one step of the tracker."
-  (setf tracker-current-playing-step step
-        tracker-current-playing-pattern pattern)
-  (when-let ((c-step (tracker-get-confirmed-step step pattern)))
-    (condition-case err (funcall c-step)
-      (error
-       (message "Tracker got a %s when attempting to run step %d in pattern %d."
-                (car err) step pattern)
-       (tracker-mark-step step pattern 'error))))
-  (tracker-update-header))
+(defun tracker-step (step pattern &optional buffer)
+  "Play STEP of PATTERN in BUFFER."
+  (let ((buffer (or buffer (current-buffer))))
+    (with-current-buffer buffer
+      (setf tracker-current-playing-step step
+            tracker-current-playing-pattern pattern)
+      (when-let ((c-step (tracker-get-confirmed-step step pattern)))
+        (condition-case err (funcall c-step)
+          (error
+           (message "Tracker got a %s when attempting to run step %d in pattern %d."
+                    (car err) step pattern)
+           (tracker-mark-step step pattern 'error))))
+      (tracker-update-header))))
 
 (defun tracker-loop (step pattern &optional buffer)
   "The main loop of the tracker; play STEP in PATTERN in BUFFER with `tracker-step', then queue the next iteration of the loop."
