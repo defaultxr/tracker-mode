@@ -309,7 +309,9 @@
 (defun tracker-listed-bpm ()
   "Get the BPM listed in the track."
   (save-excursion
-    (string-to-number (buffer-substring (tracker-goto-bpm) (1- (search-forward " "))))))
+    (string-to-number (buffer-substring-no-properties
+                       (tracker-goto-bpm)
+                       (1- (search-forward " "))))))
 
 (make-variable-buffer-local 'tracker-track-name)
 (set-default 'tracker-track-name "")
@@ -579,7 +581,7 @@
             (t
              (message "The point does not appear to be on a step."))))))
 
-;;; start/stop
+;;; transport
 
 (defun tracker-play ()
   "Starts the tracker."
