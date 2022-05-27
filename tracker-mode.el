@@ -96,19 +96,6 @@
   "Send a release message to the synth with the specified node ID."
   (tracker-mode-send-msg "/n_set" node "gate" 0))
 
-;; (tracker-mode-synth "kik")
-
-;; (tracker-mode-send-msg "/notify" 1)
-
-;; (osc-send-message tracker-osc-client "/s_new" "kik" -1.0 0 1)
-;; (setq my-server (osc-make-server "localhost" 57110
-;;                                  (lambda (path &rest args)
-;;                                    (message "OSC %s: %S" path args))))
-;; (setq mclient (osc-make-client "localhost" 9002))
-;; (osc-send-message mclient "/s_new" "kik" -1.0 0 1)
-;; (process-contact tracker-osc-client)
-;; (delete-process mclient)
-
 ;;; internal tracker commands
 
 (defvar tracker-pattern-regexp "^;+ Pattern \\([0-9]+\\):"
@@ -122,7 +109,6 @@
 
 (defun tracker-highlight-region (start end &optional timeout)
   "Temporarily highlight region from START to END."
-  ;; (set-buffer tracker-buffer)
   (let ((overlay (make-overlay start end))) 
     (overlay-put overlay 'face 'secondary-selection)
     (run-with-timer (or timeout 0.5) nil 'delete-overlay overlay)))
@@ -175,11 +161,6 @@
   "Place the point at the end of the current pattern."
   (tracker-goto-step (1- (tracker-number-of-steps))))
 
-;; (defun tracker-goto-total-number-of-patterns ()
-;;   "Places the point at the total number of patterns field."
-;;   (tracker-goto-currently-playing-pattern)
-;;   (search-forward "/"))
-
 ;; (defun tracker-goto-status ()
 ;;   "Places the point at the status field."
 ;;   (let ((inhibit-read-only t)
@@ -193,12 +174,6 @@
 ;;   (set-buffer tracker-buffer)
 ;;   (goto-char (point-min))
 ;;   (search-forward " Step: "))
-
-;; (defun tracker-goto-total-number-of-steps ()
-;;   "Places the point at the total number of steps field."
-;;   (set-buffer tracker-buffer)
-;;   (tracker-goto-currently-playing-step)
-;;   (search-forward "/"))
 
 (defun tracker-goto-pattern (&optional pattern)
   "Places the point at the end of the \"Pattern N:\" line for the specified pattern. Returns nil if the pattern could not be found."
@@ -227,10 +202,6 @@
 
 (defun tracker-current-pattern ()
   "Returns the number of the pattern that is currently being viewed."
-  ;; (set-buffer tracker-buffer)
-  ;; (save-excursion
-  ;;   (tracker-goto-currently-viewed-pattern)
-  ;;   (string-to-number (buffer-substring (point) (save-excursion (search-forward "/" nil t)))))
   (or (tracker-pattern-under-point) 0))
 
 (defun tracker-pattern-under-point ()
@@ -504,13 +475,11 @@
 (defun tracker-next-pattern ()
   "Switches the view to the next pattern."
   (interactive)
-  ;; (set-buffer tracker-buffer)
   (tracker-goto-pattern (1+ (or (tracker-pattern-under-point) 0))))
 
 (defun tracker-previous-pattern ()
   "Switches the view to the previous pattern."
   (interactive)
-  ;; (set-buffer tracker-buffer)
   (tracker-goto-pattern (1- (or (tracker-pattern-under-point) 0))))
 
 (defun tracker-toggle-latch ()
@@ -523,9 +492,9 @@
 (defun tracker-read-step (step)
   "Attempt to read the elisp from a specified step in the current pattern."
   (save-excursion
-    (when (tracker-goto-step step)
-      (when (looking-at "(")
-        (read (buffer-substring (point) (progn (forward-sexp) (point))))))))
+    (when (and (tracker-goto-step step)
+               (looking-at "("))
+      (read (buffer-substring (point) (progn (forward-sexp) (point)))))))
 
 (defun tracker-confirm-step ()
   "Confirms the edits to the current step."
@@ -592,7 +561,6 @@
 (defun tracker-change-number (arg)
   "Increase or decrease a number under the point."
   (interactive "p")
-  ;; (set-buffer tracker-buffer)
   (tracker-without-undo
    (save-excursion
      (search-backward-regexp "[^0-9-]")
@@ -621,14 +589,6 @@
     (forward-char 5)))
 
 ;;; supercollider stuff
-;; the osc library doesn't seem to work for me. if it works for you, you might want to redefine these convenience functions.
-;; for example, `synth' wouldn't use `sclang-eval-string', it'd use something like
-;; (osc-send-message my-client "/s_new" synth -1 0 1)
-;; why doesn't the osc library work? i don't know. i've tried debugging it myself and i contacted the author to no avail.
-;; the main problem is that it doesn't seem to actually send messages to any client (it can send messages to itself though)
-;; also, a minor (but fixable) problem i've discovered is that osc.el can't handle negative integers.
-;; this is an issue since supercollider uses -1 to assign a node-id automatically (i.e. so you don't have to specify one)
-;; if you can get the osc library working, please tell me.
 
 (defun sc-symbol (sym)
   (concat "\\" (symbol-name sym)))
@@ -649,6 +609,7 @@
 
 ;; (defmacro retrig (num delay &rest body)
 ;;   `(run-with-timer ,delay nil (lambda () ,body)))
+
 
 ;;; keymap
 
