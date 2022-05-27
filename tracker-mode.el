@@ -67,9 +67,6 @@
 (defvar tracker-mode-hook nil
   "Hook to run when tracker mode starts.")
 
-;; (defvar tracker-buffer nil
-;;   "The buffer that the tracker is running in.")
-
 (defun tracker-mode-make-osc-client (host port)
   "Make the OSC connection to Fluxus on host HOST and port PORT."
   (make-network-process
@@ -103,9 +100,6 @@
 
 (defvar tracker-step-regexp "^\\([0-9][0-9][0-9]\\)\\(.\\) "
   "The regexp used to match against pattern steps.")
-
-;; (defvar tracker-header-regexp "^TRACK: \\(.+\\) BPM: \\([0-9]+\\) . \\([0-9]+\\) \\([0-9]+\\)$"
-;;   "The regexp used to match against the header.")
 
 (defun tracker-highlight-region (start end &optional timeout)
   "Temporarily highlight region from START to END."
@@ -160,14 +154,6 @@
 (defun tracker-goto-end-of-current-pattern ()
   "Place the point at the end of the current pattern."
   (tracker-goto-step (1- (tracker-number-of-steps))))
-
-;; (defun tracker-goto-status ()
-;;   "Places the point at the status field."
-;;   (let ((inhibit-read-only t)
-;;         (inhibit-point-motion-hooks t))
-;;     (goto-char (point-min))
-;;     (goto-char (progn (search-forward "Step: ")
-;;                       (1+ (search-backward " " nil nil 3))))))
 
 ;; (defun tracker-goto-currently-playing-step ()
 ;;   "Places the point at the beginning of the currently playing step field."
