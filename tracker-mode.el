@@ -475,12 +475,14 @@
 (defun tracker-next-pattern ()
   "Switches the view to the next pattern."
   (interactive)
-  (tracker-goto-pattern (1+ (or (tracker-pattern-under-point) 0))))
+  (tracker-goto-pattern (mod (1+ (or (tracker-pattern-under-point) 0))
+                             (tracker-number-of-patterns))))
 
 (defun tracker-previous-pattern ()
   "Switches the view to the previous pattern."
   (interactive)
-  (tracker-goto-pattern (1- (or (tracker-pattern-under-point) 0))))
+  (tracker-goto-pattern (mod (1- (or (tracker-pattern-under-point) 0))
+                             (tracker-number-of-patterns))))
 
 (defun tracker-toggle-latch ()
   "Toggles whether to loop the current pattern."
