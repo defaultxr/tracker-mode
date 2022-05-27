@@ -715,5 +715,6 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.trk\\'" . tracker-mode))
+(add-to-list 'auto-mode-alist '("\\.track\\'" . tracker-mode))
 
 (provide 'tracker-mode)
