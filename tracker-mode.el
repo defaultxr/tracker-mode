@@ -154,13 +154,10 @@
   (goto-char (point-min))
   (search-forward-regexp "^;; BPM: "))
 
-(defun tracker-goto-currently-viewed-pattern () ;; FIX
+(defun tracker-goto-currently-viewed-pattern ()
   "Places the point at the beginning of the current pattern field."
-  ;; (set-buffer tracker-buffer)
-  (goto-char (point-min))
-  ;; (search-forward " Pat: ")
-  (search-forward "")
-  )
+  (interactive)
+  (tracker-goto-pattern (tracker-current-pattern)))
 
 (defun tracker-goto-scratch ()
   "Place the point at the beginning of the scratch field."
@@ -172,12 +169,6 @@
 (defun tracker-goto-end-of-current-pattern ()
   "Place the point at the end of the current pattern."
   (tracker-goto-step (1- (tracker-number-of-steps))))
-
-;; (defun tracker-goto-currently-viewed-pattern ()
-;;   "Places the point at the beginning of the current pattern field."
-;;   (goto-char (point-min))
-;;   (next-line)
-;;   (search-forward " Pat: "))
 
 ;; (defun tracker-goto-currently-playing-pattern ()
 ;;   "Places the point at the beginning of the currently playing pattern field."
