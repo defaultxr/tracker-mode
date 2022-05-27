@@ -484,10 +484,21 @@
   (tracker-goto-pattern (mod (1- (or (tracker-pattern-under-point) 0))
                              (tracker-number-of-patterns))))
 
+(defun tracker-latch (&optional enable)
+  "Enable or disable latching the current pattern."
+  (interactive "p")
+  (setf tracker-latched-p (if (booleanp enable)
+                              enable
+                            (if (> enable 0) t nil)))
+  (tracker-update-header)
+  (message (if tracker-latched-p
+               (concat "Latched pattern " (number-to-string tracker-current-playing-pattern) ".")
+             "Tracker unlatched.")))
+
 (defun tracker-toggle-latch ()
   "Toggles whether to loop the current pattern."
   (interactive)
-  (setf tracker-latched-p (not tracker-latched-p)))
+  (tracker-latch (not tracker-latched-p)))
 
 ;;; steps
 
