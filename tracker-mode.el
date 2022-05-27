@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012-2020 modula t.
 
 ;; Author: modula t. <defaultxr@gmail.com>
-;; Homepage: https://github.com/defaultxr/tracker.el
+;; Homepage: https://github.com/defaultxr/tracker-mode
 ;; Version: 0.7
 ;; Package-Requires: ((osc "0.4") (emacs "24.4") cl-lib)
 ;; Keywords: multimedia
