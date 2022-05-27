@@ -159,6 +159,11 @@
   (interactive)
   (tracker-goto-pattern (tracker-current-pattern)))
 
+(defun tracker-goto-currently-playing-pattern ()
+  "Places the point at the beginning of the currently playing pattern field."
+  (interactive)
+  (tracker-goto-pattern (tracker-playing-pattern)))
+
 (defun tracker-goto-scratch ()
   "Place the point at the beginning of the scratch field."
   (interactive)
@@ -169,11 +174,6 @@
 (defun tracker-goto-end-of-current-pattern ()
   "Place the point at the end of the current pattern."
   (tracker-goto-step (1- (tracker-number-of-steps))))
-
-;; (defun tracker-goto-currently-playing-pattern ()
-;;   "Places the point at the beginning of the currently playing pattern field."
-;;   (tracker-goto-currently-viewed-pattern)
-;;   (search-forward "/"))
 
 ;; (defun tracker-goto-total-number-of-patterns ()
 ;;   "Places the point at the total number of patterns field."
