@@ -160,11 +160,10 @@
   "Place the point at the end of the current pattern."
   (tracker-goto-step (1- (tracker-number-of-steps))))
 
-;; (defun tracker-goto-currently-playing-step ()
-;;   "Places the point at the beginning of the currently playing step field."
-;;   (set-buffer tracker-buffer)
-;;   (goto-char (point-min))
-;;   (search-forward " Step: "))
+(defun tracker-goto-playing-step ()
+  "Place the point at the beginning of the currently-playing step."
+  (interactive)
+  (tracker-goto-step tracker-current-playing-step tracker-current-playing-pattern))
 
 (defun tracker-goto-pattern (&optional pattern)
   "Place the point at the end of PATTERN's header line, or return nil if PATTERN could not be found."
