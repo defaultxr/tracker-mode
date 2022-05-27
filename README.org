@@ -1,6 +1,6 @@
 #+TITLE: tracker-mode
 
-A music tracker/sequencer for Emacs.
+A tracker-inspired livecodable music sequencer for Emacs.
 
 Inspired by Chun Lee's "[[http://www.youtube.com/watch?v=9YOigs1lYRY][etracker]]", which unfortunately doesn't seem to be available online.
 
@@ -8,32 +8,32 @@ Tracker-mode is a sequencer for Emacs loosely modelled after traditional tracker
 
 * Usage
 
-To start the tracker, type ~M-: (require 'tracker-mode) RET~ to load the library. To start a new track, either open a file with ~.trk~ extension, or create a new buffer and type ~M-x tracker-mode RET~ to start tracker-mode. If the buffer doesn't already have the tracker mode template, it will be inserted for you.
+To start the tracker, ensure ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~ to load it. To start a new track, either open a file with a ~.trk~ or ~.track~ file extension, or type ~M-x tracker~ to automatically create a new buffer and start the mode.
 
-To use the tracker, place the point at the end of a line beginning with three digits (i.e. 000). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~. Type your elisp code, and then when you're finished, press ~C-c C-c~ to confirm your edits to the step. To begin playing the sequence, press ~C-c C-s~. Press it again to stop.
+To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished, press ~C-c C-c~ to confirm your edits to the step. To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
 
 You can use ~C-c C-i~ to insert a new pattern, and ~C-c C-d~ to delete the pattern under point. ~M-up~ and ~M-down~ will increase or decrease the number under the point (this is useful, for example, if you want to gradually increase the BPM without manually having to retype each number).
 
-To actually generate sound, you'll likely either want to use OSC (open sound control) via Emacs' osc.el which is currently required by this library, or one of the provided convenience functions to interface with SuperCollider (i.e. ~synth~ which triggers a SuperCollider synth). Emacs itself can also play sound on some systems with the ~play-sound~ function.
+To actually generate sound, you'll likely either want to use OSC (open sound control) via Emacs' osc.el which is currently required by this library, or one of the provided convenience functions to interface with SuperCollider (i.e. ~tracker-sc-synth~ which triggers a SuperCollider synth). Emacs itself can also play sound on some systems with the ~play-sound~ function.
 
 I've tried to make tracker-mode as robust as possible, so errors that occur in a step will be caught and won't cause it to stop playing, however it is likely still possible to break playback accidentally if you remove part of the interface that tracker-mode is expecting to be there. In the future I'll try to make it even more fail-safe but for now it's probably best to just not make those kinds of mistakes ;^]
 
 * Keys
 
-- ~M-down~ - tracker-decrease-number - decreases the number under the point.
-- ~M-up~ - tracker-increase-number - increases the number under the point.
-- ~C-a~ - tracker-back-to-indent - moves your cursor back to the beginning of the line.
-# - ~C-c C-n~ - tracker-next-pattern - moves the view to the next pattern in the song.
-# - ~C-c C-p~ - tracker-previous-pattern - moves the view to the previous pattern in the song.
-- ~C-c C-s~ - tracker-start-stop - starts or stops playing the song.
-- ~C-c C-l~ - tracker-latch-pattern - toggles "latching" the current pattern. while latched, the current pattern will be looped instead of proceeding to the next.
-- ~C-c C-i~ - tracker-insert-pattern - inserts a new pattern in the song after the current.
-- ~C-c C-c~ - tracker-confirm-step - confirms and applies the changes you've made to the current step, the BPM, track title, etc.
-- ~C-c C-k~ - tracker-revert-step - reverts the current step, undoing any changes you've made--NOT YET IMPLEMENTED.
-- ~M-g b~ - tracker-goto-bpm - moves the point to the BPM field.
-- ~M-g s~ - tracker-goto-step - moves the point to the specified step in the current pattern.
-- ~M-g t~ - tracker-goto-title - moves the point to the title field.
-- ~M-g p~ - tracker-view-pattern - switches the view to the specified pattern.
+- ~M-down~ - ~tracker-decrease-number~ - decreases the number under the point.
+- ~M-up~ - ~tracker-increase-number~ - increases the number under the point.
+- ~C-a~ - ~tracker-back-to-indent~ - moves your cursor back to the beginning of the line.
+- ~C-c C-n~ - ~tracker-next-pattern~ - moves the point to the next pattern in the song.
+- ~C-c C-p~ - ~tracker-previous-pattern~ - moves the point to the previous pattern in the song.
+- ~C-c C-s~ - ~tracker-start-stop~ - starts or stops playing the song.
+- ~C-c C-l~ - ~tracker-latch-pattern~ - toggles "latching" the current pattern. while latched, the current pattern will be looped instead of proceeding to the next.
+- ~C-c C-i~ - ~tracker-insert-pattern~ - inserts a new pattern in the song after the current.
+- ~C-c C-c~ - ~tracker-confirm-step~ - confirms and applies the changes you've made to the current step, the BPM, track title, etc.
+# - ~C-c C-k~ - ~tracker-revert-step~ - reverts the current step, undoing any changes you've made--NOT YET IMPLEMENTED.
+- ~M-g b~ - ~tracker-goto-bpm~ - moves the point to the BPM field.
+- ~M-g s~ - ~tracker-goto-step~ - moves the point to the specified step in the current pattern.
+- ~M-g t~ - ~tracker-goto-title~ - moves the point to the title field.
+- ~M-g p~ - ~tracker-goto-pattern~ - jumps the point to the specified pattern.
 
 * Future
 
