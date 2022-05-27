@@ -1,4 +1,4 @@
-;;; tracker-mode --- Tracker major mode for Emacs.
+;;; tracker-mode --- Tracker-inspired sequencer mode for Emacs.
 
 ;; Copyright (C) 2012-2022 modula t.
 
