@@ -305,6 +305,10 @@
                        (tracker-goto-bpm)
                        (1- (search-forward " "))))))
 
+(defun tracker-tempo ()
+  "Get the tracker tempo as beats per second."
+  (/ (tracker-bpm) 60))
+
 (make-variable-buffer-local 'tracker-track-name)
 (set-default 'tracker-track-name "")
 
