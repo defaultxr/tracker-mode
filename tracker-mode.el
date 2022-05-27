@@ -320,6 +320,16 @@
 
 ;;; interface code
 
+(defun tracker-buffer-p (&optional buffer)
+  "True if BUFFER appears to be a `tracker-mode' buffer."
+  (let ((buffer (or buffer (current-buffer))))
+    (save-excursion
+      (goto-char (point-min))
+      (and (looking-at "^;; TRACK: ")
+           (progn
+             (goto-line 2)
+             (looking-at "^;; BPM: [0-9]+"))))))
+
 (defun tracker-write-template ()
   "Writes the default template for the tracker."
   (tracker-without-undo
@@ -336,6 +346,14 @@
      (unless (search-forward-regexp tracker-pattern-regexp nil t)
        (tracker-insert-pattern 16)))
    (remove-from-invisibility-spec 'tracker-pattern-0)))
+
+(defun tracker ()
+  "Initialize a buffer for `tracker-mode', creating one if necessary."
+  (interactive)
+  (unless (tracker-buffer-p)
+    (get-buffer-create "*Tracker*")
+    (switch-to-buffer "*Tracker*"))
+  (tracker-mode))
 
 (defun tracker-update-header ()
   "Update the header line of the tracker buffer."
@@ -693,6 +711,8 @@
 ;;;###autoload
 (define-derived-mode tracker-mode emacs-lisp-mode "Tracker"
   "Major mode for using emacs as a music tracker."
+  (unless (tracker-buffer-p)
+    (error "This does not appear to be a tracker-mode-formatted buffer. Try M-x tracker to create and initialize a new tracker-mode buffer."))
   (use-local-map tracker-mode-map)
   (tracker-write-template)
   (tracker-make-confirmed-steps-hash)
