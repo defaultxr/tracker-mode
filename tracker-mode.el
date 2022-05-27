@@ -1,6 +1,6 @@
 ;;; tracker-mode --- Tracker major mode for Emacs.
 
-;; Copyright (C) 2012-2020 modula t.
+;; Copyright (C) 2012-2022 modula t.
 
 ;; Author: modula t. <defaultxr@gmail.com>
 ;; Homepage: https://github.com/defaultxr/tracker-mode
