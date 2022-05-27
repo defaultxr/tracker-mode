@@ -324,19 +324,44 @@
     (switch-to-buffer "*Tracker*"))
   (tracker-mode))
 
+(defface tracker-header-heading-face
+  '((t :inherit font-lock-keyword-face))
+  "Face used to highlight header headings."
+  :group 'tracker-mode)
+
 (defun tracker-update-header ()
   "Update the header line of the tracker buffer."
-  (setf header-line-format (concat "Track: "
-                                   (tracker-track-name)
-                                   " BPM: " (number-to-string (tracker-bpm))
-                                   " "
-                                   (if tracker-playing-p "▶" "⏹")
-                                   " "
-                                   (when tracker-current-playing-pattern
-                                     (number-to-string tracker-current-playing-pattern))
-                                   " "
-                                   (when tracker-current-playing-step
-                                     (number-to-string tracker-current-playing-step))))
+  (cl-flet ((heading (string &optional help-echo)
+                     (apply 'propertize string
+                            'face 'tracker-header-heading-face
+                            (when help-echo
+                              (list 'help-echo help-echo)))))
+    (setf header-line-format (concat (heading "Track:" "The name of the track.")
+                                     " "
+                                     (tracker-track-name)
+                                     " "
+                                     (heading "BPM:" "Current tempo in beats per minute.")
+                                     " "
+                                     (number-to-string (tracker-bpm))
+                                     " "
+                                     (heading (if tracker-playing-p "▶" "⏹")
+                                              (concat "Transport status: "
+                                                      (if tracker-playing-p "playing" "stopped")
+                                                      "."))
+                                     (heading (if tracker-latched-p "L" " ")
+                                              (if tracker-latched-p
+                                                  "Latch on."
+                                                "Latch off."))
+                                     " "
+                                     (heading "Pattern:" "Currently-playing pattern.")
+                                     " "
+                                     (when tracker-current-playing-pattern
+                                       (number-to-string tracker-current-playing-pattern))
+                                     " "
+                                     (heading "Step:" "Currently-playing step.")
+                                     " "
+                                     (when tracker-current-playing-step
+                                       (number-to-string tracker-current-playing-step)))))
   (force-mode-line-update))
 
 (defun tracker-after-change-function (start end length)
