@@ -239,12 +239,9 @@
 (make-variable-buffer-local 'tracker-playing-p)
 (set-default 'tracker-playing-p nil)
 
-;; FIX
 (defun tracker-playing-pattern ()
-  "Returns the number of the pattern that is currently being played."
-  (save-excursion
-    (tracker-goto-currently-playing-pattern)
-    (string-to-number (buffer-substring (point) (save-excursion (search-forward "/" nil t))))))
+  "Get the number of the currently-playing pattern."
+  tracker-current-playing-pattern)
 
 (defvar tracker-latched-p nil
   "Whether or not the tracker should loop only this pattern when playing.")
