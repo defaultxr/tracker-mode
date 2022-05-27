@@ -48,6 +48,7 @@
 ;;; load stuff
 
 (require 'osc)
+(require 'cl-lib)
 
 ;;; custom
 
