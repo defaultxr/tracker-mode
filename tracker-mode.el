@@ -1,21 +1,23 @@
-;;; tracker-mode --- Tracker-inspired sequencer mode for Emacs.
+;;; tracker-mode.el --- Tracker-inspired livecodable sequencer mode
 
 ;; Copyright (C) 2012-2022 modula t.
 
-;; Author: modula t. <defaultxr@gmail.com>
+;; Author: modula t. <defaultxr at gmail dot com>
 ;; Homepage: https://github.com/defaultxr/tracker-mode
 ;; Version: 0.7
-;; Package-Requires: ((osc "0.4") (emacs "24.4") cl-lib)
 ;; Keywords: multimedia
+;; Package-Requires: ((osc "0.4") (emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.
+
+;;; License:
 
 ;; Tracker-Mode is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; Foobar is distributed in the hope that it will be useful,
+;; Tracker-Mode is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -28,8 +30,8 @@
 ;; This package provides a major mode for Emacs that emulates (or attempts to)
 ;; music trackers like Renoise, MilkyTracker, or SunVox.
 ;;
-;; A tracker is a sequencer used for making music. In a tracker, musical data
-;; is typically represented as a grid of rows and columns. Each column usually
+;; A tracker is a sequencer used for making music.  In a tracker, musical data
+;; is typically represented as a grid of rows and columns.  Each column usually
 ;; represents a separate instrument or channel, and each row represents a step
 ;; in the sequence.
 ;;
@@ -37,7 +39,7 @@
 ;; it does have the ability to save multiple patterns and switch between them.
 ;;
 ;; Tracker-Mode does not produce sound on its own, as it is just a sequencer
-;; that triggers synthesizers by sending OSC messages. Right now only
+;; that triggers synthesizers by sending OSC messages.  Right now only
 ;; SuperCollider is being tested as its sound engine, but it should be possible
 ;; to send to other synths as well with some minor hacking.
 
@@ -49,18 +51,20 @@
 
 ;;; custom
 
-(defgroup tracker-mode nil
+(defgroup tracker nil
   "Tracker-Mode."
   :group 'external
-  :prefix "tracker-mode-")
+  :prefix "tracker-")
 
-(defcustom tracker-mode-osc-host "127.0.0.1"
+(defcustom tracker-osc-host "127.0.0.1"
   "The host that the synth process is running on."
-  :type '(string))
+  :type '(string)
+  :group 'tracker)
 
-(defcustom tracker-mode-osc-port 57110
+(defcustom tracker-osc-port 57110
   "The port to send Tracker-Mode's OSC messages to."
-  :type '(integer))
+  :type '(integer)
+  :group 'tracker)
 
 ;;; global variables
 
@@ -93,7 +97,7 @@
   "Send a release message to the synth with the specified node ID."
   (tracker-mode-send-msg "/n_set" node "gate" 0))
 
-;;; internal tracker commands
+;;; internal tracker variables + functions
 
 (defvar tracker-pattern-regexp "^;+ Pattern \\([0-9]+\\):"
   "The regexp used to match against pattern headers.")
@@ -123,7 +127,7 @@
   (end-of-line))
 
 (defun tracker-goto-step (step &optional pattern)
-  "Place the point at the specified step in the current pattern."
+  "Place the point at STEP in PATTERN (or the current if none specified)."
   (interactive "NStep: ")
   (search-backward-regexp tracker-pattern-regexp)
   (search-forward-regexp (format "^%03d. " step)))
@@ -162,7 +166,7 @@
 ;;   (search-forward " Step: "))
 
 (defun tracker-goto-pattern (&optional pattern)
-  "Places the point at the end of the \"Pattern N:\" line for the specified pattern. Returns nil if the pattern could not be found."
+  "Place the point at the end of PATTERN's header line, or return nil if PATTERN could not be found."
   (interactive "NPattern: ")
   (goto-char (point-min))
   (let ((pattern (or pattern (tracker-pattern-under-point))))
@@ -187,11 +191,11 @@
     (count-matches tracker-pattern-regexp)))
 
 (defun tracker-current-pattern ()
-  "Returns the number of the pattern that is currently being viewed."
+  "Get the number of the pattern under point."
   (or (tracker-pattern-under-point) 0))
 
 (defun tracker-pattern-under-point ()
-  "Returns the number of the pattern that the point is in, or nil if none."
+  "Get the number of the pattern that the point is in, or nil if none."
   (save-excursion
     (when (search-backward-regexp tracker-pattern-regexp nil t)
       (string-to-number (match-string 1)))))
@@ -209,7 +213,7 @@
     (nreverse res)))
 
 (defun tracker-number-of-steps (&optional pattern)
-  "Get the number of currently-defined steps in a pattern."
+  "Get the number of steps in PATTERN."
   (when-let ((pattern (or pattern (tracker-pattern-under-point))))
     (save-excursion
       (tracker-goto-pattern pattern)
@@ -221,7 +225,7 @@
                        (point))))))
 
 (defun tracker-step-under-point ()
-  "Returns the step that the point is on, or nil if the point is not located on a step."
+  "Get the step number that the point is on, or nil if the point is not located on a step."
   (when-let ((pattern (tracker-pattern-under-point)))
     (when (save-excursion
             (search-backward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t))
@@ -230,7 +234,7 @@
           (string-to-number (buffer-substring (point) (+ 3 (point)))))))))
 
 (defvar tracker-playing-p nil
-  "Whether or not the tracker is currently playing.")
+  "True if the tracker is currently playing, or nil if it is stopped.")
 
 (make-variable-buffer-local 'tracker-playing-p)
 (set-default 'tracker-playing-p nil)
@@ -313,7 +317,7 @@
 (defface tracker-header-heading-face
   '((t :inherit font-lock-keyword-face))
   "Face used to highlight header headings."
-  :group 'tracker-mode)
+  :group 'tracker)
 
 (defun tracker-update-header ()
   "Update the header line of the tracker buffer."
@@ -351,7 +355,7 @@
   (force-mode-line-update))
 
 (defun tracker-after-change-function (start end length)
-  "Function to run after the buffer is modified to mark a step as modified."
+  "The function run after the buffer is modified to mark a step as modified."
   (save-excursion
     (goto-char start)
     (when-let ((pattern (tracker-pattern-under-point))
@@ -359,7 +363,7 @@
       (tracker-mark-step step pattern 'modified))))
 
 (defun tracker-mark-step (step pattern type)
-  "Marks the specified step in the current pattern as correct or containing an error."
+  "Mark STEP in PATTERN as modified (M), erroring (E), or correct (blank).  TYPE should be either 'error, 'modified, or 'correct."
   (tracker-without-undo
    (save-excursion
      (when (tracker-goto-step step pattern)
@@ -382,18 +386,19 @@
   (setf tracker-confirmed-steps (make-hash-table :test 'equal)))
 
 (defun tracker-step-id (step pattern)
-  "Make a key for the tracker steps hash."
+  "Get a key for the `tracker-confirmed-steps' hash to access STEP in PATTERN."
   (list pattern step))
 
 (defun tracker-get-confirmed-step (step pattern)
+  "Get the confirmed step STEP in PATTERN from the `tracker-confirmed-steps' hash."
   (gethash (tracker-step-id step pattern) tracker-confirmed-steps))
 
 (defun tracker-set-confirmed-step (step pattern value)
-  "Deletes a confirmed step."
+  "Set STEP in PATTERN to VALUE in the `tracker-confirmed-steps' hash."
   (setf (gethash (tracker-step-id step pattern) tracker-confirmed-steps) value))
 
 (defun tracker-delete-confirmed-step (step pattern)
-  "Deletes a confirmed step."
+  "Delete STEP in PATTERN from the `tracker-confirmed-steps' hash."
   (remhash (tracker-step-id step pattern) tracker-confirmed-steps))
 
 ;;; main loop and associated stuff
@@ -427,7 +432,7 @@
   (tracker-update-header))
 
 (defun tracker-loop (step pattern &optional buffer)
-  "The main loop of the tracker."
+  "The main loop of the tracker; play STEP in PATTERN in BUFFER with `tracker-step', then queue the next iteration of the loop."
   (let ((buffer (or buffer (current-buffer))))
     (with-current-buffer buffer
       (when tracker-playing-p
@@ -444,12 +449,12 @@
 
 ;;; pattern editing
 
-(defun tracker-insert-pattern (&optional steps)
-  "Insert a new pattern after the current."
+(defun tracker-insert-pattern (&optional size)
+  "Insert a new pattern after the current one containing SIZE steps."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
-     (list (read-number "Steps: " 16))))
+     (list (read-number "Number of steps: " 16))))
   (let ((number (tracker-number-of-patterns))
         (buffer-invisibility-spec nil))
     (save-excursion
@@ -459,7 +464,7 @@
       (insert (propertize
                (concat ";; Pattern " (number-to-string number) ":\n"
                        (let ((result ""))
-                         (dotimes (step steps result)
+                         (dotimes (step size result)
                            (setf result (concat result (format "%03d  %s" step (string ?\n)))))
                          result)
                        (string ?\n))
@@ -484,19 +489,19 @@
     (message "The point does not appear to be in a pattern.")))
 
 (defun tracker-next-pattern ()
-  "Switches the view to the next pattern."
+  "Move point to the next pattern."
   (interactive)
   (tracker-goto-pattern (mod (1+ (or (tracker-pattern-under-point) 0))
                              (tracker-number-of-patterns))))
 
 (defun tracker-previous-pattern ()
-  "Switches the view to the previous pattern."
+  "Move point to the previous pattern."
   (interactive)
   (tracker-goto-pattern (mod (1- (or (tracker-pattern-under-point) 0))
                              (tracker-number-of-patterns))))
 
 (defun tracker-latch (&optional enable)
-  "Enable or disable latching the current pattern."
+  "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off."
   (interactive "p")
   (setf tracker-latched-p (if (booleanp enable)
                               enable
@@ -507,16 +512,16 @@
              "Tracker unlatched.")))
 
 (defun tracker-toggle-latch ()
-  "Toggles whether to loop the current pattern."
+  "Toggle whether to loop the current pattern."
   (interactive)
   (tracker-latch (not tracker-latched-p)))
 
 ;;; steps
 
-(defun tracker-read-step (step)
-  "Attempt to read the elisp from a specified step in the current pattern."
+(defun tracker-read-step (step &optional pattern)
+  "Attempt to read the elisp from STEP in PATTERN."
   (save-excursion
-    (when (and (tracker-goto-step step)
+    (when (and (tracker-goto-step step (or pattern (tracker-current-pattern)))
                (looking-at "("))
       (read (buffer-substring (point) (progn (forward-sexp) (point)))))))
 
@@ -543,21 +548,21 @@
 ;;; transport
 
 (defun tracker-play ()
-  "Starts the tracker."
+  "Start playing the tracker."
   (interactive)
   (setf tracker-playing-p t)
   (tracker-loop 0 (or (tracker-pattern-under-point) 0) (current-buffer))
   (message "Tracker started."))
 
 (defun tracker-stop ()
-  "Stops the tracker."
+  "Stop playing the tracker."
   (interactive)
   (setf tracker-playing-p nil)
   (message "Tracker stopped.")
   (tracker-update-header))
 
-(defun tracker-play-stop ()
-  "Starts or stops the tracker."
+(defun tracker-play-or-stop ()
+  "Play the tracker if it is stopped, or stop it if it is playing."
   (interactive)
   (if tracker-playing-p
       (tracker-stop)
@@ -582,8 +587,8 @@
 
 ;;; change numbers
 
-(defun tracker-change-number (arg)
-  "Increase or decrease a number under the point."
+(defun tracker-change-number (change)
+  "Increase or decrease a number under the point by CHANGE."
   (interactive "p")
   (tracker-without-undo
    (save-excursion
@@ -594,19 +599,20 @@
             (string (buffer-substring start end)))
        (when (not (eq 0 (- end start)))
          (delete-char (- end start))
-         (insert (number-to-string (+ (or arg 1) (string-to-number string)))))))))
+         (insert (number-to-string (+ (or change 1) (string-to-number string)))))))))
 
-(defun tracker-increase-number (arg)
-  "Increase a number under the point."
+(defun tracker-increase-number (&optional increase)
+  "Increase the number under the point by INCREASE."
   (interactive "p")
-  (tracker-change-number (or arg 1)))
+  (tracker-change-number (or increase 1)))
 
-(defun tracker-decrease-number (arg)
-  "Decrease a number under the point."
+(defun tracker-decrease-number (&optional decrease)
+  "Decrease the number under the point by DECREASE."
   (interactive "p")
-  (tracker-change-number (- (or arg 1))))
+  (tracker-change-number (- (or decrease 1))))
 
 (defun tracker-back-to-indent ()
+  "Move point back to the beginning of the line, skipping forward to the start of the step input if on a step."
   (interactive)
   (beginning-of-line)
   (when (looking-at tracker-step-regexp)
@@ -646,7 +652,7 @@
     (define-key map (kbd "C-c C-p") 'tracker-previous-pattern)
     ;; (define-key map (kbd "M-n") 'tracker-next-field) ; goes to next step in the pattern, etc
     ;; (define-key map (kbd "M-p") 'tracker-previous-field)
-    (define-key map (kbd "C-c C-s") 'tracker-play-stop)
+    (define-key map (kbd "C-c C-s") 'tracker-play-or-stop)
     (define-key map (kbd "C-c C-l") 'tracker-toggle-latch)
     (define-key map (kbd "C-c C-i") 'tracker-insert-pattern)
     (define-key map (kbd "C-c C-d") 'tracker-delete-pattern)
@@ -663,9 +669,9 @@
 
 ;;;###autoload
 (define-derived-mode tracker-mode emacs-lisp-mode "Tracker"
-  "Major mode for using emacs as a music tracker."
+  "Tracker-inspired livecodable sequencer mode for Emacs."
   (unless (tracker-buffer-p)
-    (error "This does not appear to be a tracker-mode-formatted buffer. Try M-x tracker to create and initialize a new tracker-mode buffer."))
+    (error "This does not appear to be a tracker-mode-formatted buffer.  Try M-x tracker to create and initialize a new tracker-mode buffer"))
   (use-local-map tracker-mode-map)
   (tracker-write-template)
   (tracker-make-confirmed-steps-hash)
@@ -678,3 +684,5 @@
 (add-to-list 'auto-mode-alist '("\\.track\\'" . tracker-mode))
 
 (provide 'tracker-mode)
+
+;;; tracker-mode.el ends here

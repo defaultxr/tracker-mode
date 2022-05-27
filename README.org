@@ -25,7 +25,7 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 - ~C-a~ - ~tracker-back-to-indent~ - moves your cursor back to the beginning of the line.
 - ~C-c C-n~ - ~tracker-next-pattern~ - moves the point to the next pattern in the song.
 - ~C-c C-p~ - ~tracker-previous-pattern~ - moves the point to the previous pattern in the song.
-- ~C-c C-s~ - ~tracker-start-stop~ - starts or stops playing the song.
+- ~C-c C-s~ - ~tracker-play-or-stop~ - starts or stops playing the song.
 - ~C-c C-l~ - ~tracker-latch-pattern~ - toggles "latching" the current pattern. while latched, the current pattern will be looped instead of proceeding to the next.
 - ~C-c C-i~ - ~tracker-insert-pattern~ - inserts a new pattern in the song after the current.
 - ~C-c C-c~ - ~tracker-confirm-step~ - confirms and applies the changes you've made to the current step, the BPM, track title, etc.
