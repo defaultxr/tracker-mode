@@ -367,7 +367,7 @@
        (beginning-of-line)
        (forward-char 3)
        (delete-char 1)
-       (insert (case type
+       (insert (cl-case type
                  (error "E")
                  (modified "M")
                  (correct " ")))))))
