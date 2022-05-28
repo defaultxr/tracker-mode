@@ -134,10 +134,10 @@
   (search-forward-regexp (format "^%03d. " step)))
 
 (defun tracker-goto-bpm ()
-  "Place the point at the beginning of the BPM field."
+  "Place the point at the end of the BPM field."
   (interactive)
   (goto-char (point-min))
-  (search-forward-regexp "^;; BPM: "))
+  (search-forward-regexp "^;; BPM: [0-9]+"))
 
 (defun tracker-goto-currently-viewed-pattern ()
   "Places the point at the beginning of the current pattern field."
