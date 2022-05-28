@@ -8,7 +8,7 @@ Tracker-mode is a sequencer for Emacs loosely modelled after traditional tracker
 
 * Usage
 
-To start the tracker, ensure ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~ to load it. To start a new track, either open a file with a ~.trk~ or ~.track~ file extension, or type ~M-x tracker~ to automatically create a new buffer and start the mode.
+To start the tracker, ensure ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~ to load it. To start a new track, type ~M-x tracker~ to automatically create a new buffer and start the mode, or load a saved tracker-mode project by opening a file with a ~.trk~ or ~.track~ file extension.
 
 To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished, press ~C-c C-c~ to confirm your edits to the step. To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
 
