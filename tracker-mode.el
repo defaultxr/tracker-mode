@@ -72,32 +72,6 @@
 (defvar tracker-mode-hook nil
   "Hook to run when tracker mode starts.")
 
-(defun tracker-mode-make-osc-client (host port)
-  "Make the OSC connection to Fluxus on host HOST and port PORT."
-  (make-network-process
-   :name "Tracker-Mode OSC"
-   :coding 'binary
-   :host host
-   :service port
-   :type 'datagram
-   :family 'ipv4
-   :noquery t))
-
-(defvar tracker-osc-client (tracker-mode-make-osc-client tracker-mode-osc-host tracker-mode-osc-port)
-  "OSC Client for the tracker.")
-
-(defun tracker-mode-send-msg (&rest args)
-  "Send an OSC message to tracker-mode's set host and port."
-  (apply #'osc-send-message tracker-osc-client args))
-
-(defun tracker-mode-synth (name &optional args)
-  "Trigger a synth to start."
-  (tracker-mode-send-msg "/s_new" name -1.0 0 1))
-
-(defun tracker-mode-release (node)
-  "Send a release message to the synth with the specified node ID."
-  (tracker-mode-send-msg "/n_set" node "gate" 0))
-
 ;;; internal tracker variables + functions
 
 (defvar tracker-pattern-regexp "^;+ Pattern \\([0-9]+\\):"
@@ -105,12 +79,6 @@
 
 (defvar tracker-step-regexp "^\\([0-9][0-9][0-9]\\)\\(.\\) "
   "The regexp used to match against pattern steps.")
-
-(defun tracker-highlight-region (start end &optional timeout)
-  "Temporarily highlight region from START to END."
-  (let ((overlay (make-overlay start end))) 
-    (overlay-put overlay 'face 'secondary-selection)
-    (run-with-timer (or timeout 0.5) nil 'delete-overlay overlay)))
 
 (defmacro tracker-without-undo (&rest body)
   "Perform BODY without modifying the buffer's undo list."
@@ -569,20 +537,6 @@
 
 ;;; utility functions
 
-;; (defun wrap (number bottom top)
-;;   "Returns the number wrapped within the range of 'bottom' to 'top'."
-;;   (+ (mod (- number bottom) (- (1+ top) bottom)) bottom))
-
-;; (defun rand (bottom &optional top)
-;;   "Generates a random number within the range of 0 to 'bottom' or 'bottom' to 'top' if top is provided."
-;;   ;; FIX: detect if any of the numbers are floats instead of ints, and if so, return a float within the range, rather than an int.
-;;   (if top
-;;       (+ bottom (random (1+ (- top bottom))))
-;;     (random (1+ bottom))))
-
-;; (defun choice (&rest choices)
-;;   "Returns a random argument."
-;;   (nth (random (length choices)) choices))
 
 ;;; change numbers
 
@@ -616,28 +570,6 @@
   (beginning-of-line)
   (when (looking-at tracker-step-regexp)
     (forward-char 5)))
-
-;;; supercollider stuff
-
-(defun sc-symbol (sym)
-  (concat "\\" (symbol-name sym)))
-
-(defun sc-parse (sym)
-  (cond ((symbolp sym) (sc-symbol sym))
-        ((numberp sym) (number-to-string sym))))
-
-(defun sc-arg-list (&rest rest)
-  (when rest
-    (concat (sc-parse (car rest)) ","
-            (sc-parse (cadr rest)) ","
-            (apply 'sc-arg-list (cddr rest)))))
-
-(defun synth (synth &rest args)
-  (let ((args (apply 'sc-arg-list args)))
-    (sclang-eval-string (concat "Synth(\\" (symbol-name synth) ", [" args "]);"))))
-
-;; (defmacro retrig (num delay &rest body)
-;;   `(run-with-timer ,delay nil (lambda () ,body)))
 
 
 ;;; keymap
