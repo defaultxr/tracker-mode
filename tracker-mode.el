@@ -126,7 +126,7 @@
 
 (defun tracker-goto-end-of-current-pattern ()
   "Place the point at the end of the current pattern."
-  (tracker-goto-step (1- (tracker-number-of-steps))))
+  (tracker-goto-step (1- (tracker-steps-count))))
 
 (defun tracker-goto-playing-step ()
   "Place the point at the beginning of the currently-playing step."
@@ -137,7 +137,7 @@
   "Place the point at the end of PATTERN's header line, or return nil if PATTERN could not be found."
   (interactive "NPattern: ")
   (goto-char (point-min))
-  (let ((pattern (or pattern (tracker-pattern-under-point))))
+  (let ((pattern (or pattern (tracker-pattern-at-point))))
     (and (search-forward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t)
          (backward-char))))
 
@@ -152,7 +152,7 @@
         (push (string-to-number (match-string-no-properties 1)) res)))
     (nreverse res)))
 
-(defun tracker-number-of-patterns ()
+(defun tracker-patterns-count ()
   "Get the total number of patterns in the buffer."
   (save-excursion
     (goto-char (point-min))
@@ -160,9 +160,9 @@
 
 (defun tracker-current-pattern ()
   "Get the number of the pattern under point."
-  (or (tracker-pattern-under-point) 0))
+  (or (tracker-pattern-at-point) 0))
 
-(defun tracker-pattern-under-point ()
+(defun tracker-pattern-at-point ()
   "Get the number of the pattern that the point is in, or nil if none."
   (save-excursion
     (when (search-backward-regexp tracker-pattern-regexp nil t)
@@ -171,7 +171,7 @@
 (defun tracker-pattern-steps (&optional pattern)
   "Get a list of the step numbers in PATTERN."
   (let ((pattern (or pattern
-                     (tracker-pattern-under-point)
+                     (tracker-pattern-at-point)
                      0))
         res)
     (save-excursion
@@ -180,9 +180,9 @@
         (push (string-to-number (match-string-no-properties 1)) res)))
     (nreverse res)))
 
-(defun tracker-number-of-steps (&optional pattern)
+(defun tracker-steps-count (&optional pattern)
   "Get the number of steps in PATTERN."
-  (when-let ((pattern (or pattern (tracker-pattern-under-point))))
+  (when-let ((pattern (or pattern (tracker-pattern-at-point))))
     (save-excursion
       (tracker-goto-pattern pattern)
       (count-matches tracker-step-regexp
@@ -192,9 +192,9 @@
                          (tracker-goto-pattern (1+ pattern)))
                        (point))))))
 
-(defun tracker-step-under-point ()
+(defun tracker-step-at-point ()
   "Get the step number that the point is on, or nil if the point is not located on a step."
-  (when-let ((pattern (tracker-pattern-under-point)))
+  (when-let ((pattern (tracker-pattern-at-point)))
     (when (save-excursion
             (search-backward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t))
       (save-excursion
@@ -323,8 +323,8 @@
   "Mark the associated step as modified after the buffer is modified."
   (save-excursion
     (goto-char start)
-    (when-let ((pattern (tracker-pattern-under-point))
-               (step (tracker-step-under-point)))
+    (when-let ((pattern (tracker-pattern-at-point))
+               (step (tracker-step-at-point)))
       (tracker-mark-step step pattern 'modified))))
 
 (defun tracker-mark-step (step pattern type)
@@ -411,7 +411,7 @@
                  (next-pattern (if (or tracker-latched-p
                                        (not (eql next-step 0)))
                                    pattern
-                                 (mod (1+ pattern) (tracker-number-of-patterns)))))
+                                 (mod (1+ pattern) (tracker-patterns-count)))))
             (run-with-timer delay nil 'tracker-loop next-step next-pattern buffer)))))))
 
 ;;; pattern editing
@@ -422,7 +422,7 @@
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
      (list (read-number "Number of steps: " 16))))
-  (let ((number (tracker-number-of-patterns))
+  (let ((number (tracker-patterns-count))
         (buffer-invisibility-spec nil))
     (save-excursion
       (or (ignore-errors ;; FIX
@@ -441,7 +441,7 @@
 (defun tracker-delete-pattern ()
   "Delete the pattern under point."
   (interactive)
-  (if-let ((pattern (tracker-pattern-under-point)))
+  (if-let ((pattern (tracker-pattern-at-point)))
       (progn
         (dolist (step (tracker-pattern-steps pattern))
           (remhash (tracker-step-id step pattern) tracker-confirmed-steps))
@@ -458,19 +458,19 @@
 (defun tracker-next-pattern ()
   "Move point to the next pattern."
   (interactive)
-  (tracker-goto-pattern (mod (1+ (or (tracker-pattern-under-point) 0))
-                             (tracker-number-of-patterns))))
+  (tracker-goto-pattern (mod (1+ (or (tracker-pattern-at-point) 0))
+                             (tracker-patterns-count))))
 
 (defun tracker-previous-pattern ()
   "Move point to the previous pattern."
   (interactive)
-  (tracker-goto-pattern (mod (1- (or (tracker-pattern-under-point) 0))
-                             (tracker-number-of-patterns))))
+  (tracker-goto-pattern (mod (1- (or (tracker-pattern-at-point) 0))
+                             (tracker-patterns-count))))
 
 (defun tracker-latch (&optional enable)
   "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off.
 
-See also: `tracker-toggle-latch'"
+See also: `tracker-latch-toggle'"
   (interactive "p")
   (setf tracker-latched-p (if (booleanp enable)
                               enable
@@ -480,7 +480,7 @@ See also: `tracker-toggle-latch'"
                (concat "Latched pattern " (number-to-string tracker-current-playing-pattern) ".")
              "Tracker unlatched.")))
 
-(defun tracker-toggle-latch ()
+(defun tracker-latch-toggle ()
   "Toggle whether to loop the current pattern."
   (interactive)
   (tracker-latch (not tracker-latched-p)))
@@ -497,9 +497,9 @@ See also: `tracker-toggle-latch'"
 (defun tracker-confirm-step ()
   "Confirm edits to the current step."
   (interactive)
-  (if-let ((current-step (tracker-step-under-point)))
+  (if-let ((current-step (tracker-step-at-point)))
       (save-excursion
-        (let ((current-pattern (tracker-pattern-under-point))
+        (let ((current-pattern (tracker-pattern-at-point))
               (elisp (tracker-read-step current-step)))
           (tracker-set-confirmed-step current-step current-pattern (eval `(lambda () ,elisp)))
           (tracker-mark-step current-step current-pattern 'correct)))
@@ -520,7 +520,7 @@ See also: `tracker-toggle-latch'"
   "Start playing the tracker."
   (interactive)
   (setf tracker-playing-p t)
-  (tracker-loop 0 (or (tracker-pattern-under-point) 0) (current-buffer))
+  (tracker-loop 0 (or (tracker-pattern-at-point) 0) (current-buffer))
   (message "Tracker started."))
 
 (defun tracker-stop ()
@@ -586,7 +586,7 @@ See also: `tracker-toggle-latch'"
     ;; (define-key map (kbd "M-n") 'tracker-next-field) ; goes to next step in the pattern, etc
     ;; (define-key map (kbd "M-p") 'tracker-previous-field)
     (define-key map (kbd "C-c C-s") 'tracker-play-or-stop)
-    (define-key map (kbd "C-c C-l") 'tracker-toggle-latch)
+    (define-key map (kbd "C-c C-l") 'tracker-latch-toggle)
     (define-key map (kbd "C-c C-i") 'tracker-insert-pattern)
     (define-key map (kbd "C-c C-d") 'tracker-delete-pattern)
     (define-key map (kbd "C-c C-c") 'tracker-confirm-step)
