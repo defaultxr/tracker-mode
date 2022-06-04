@@ -108,12 +108,12 @@
   (search-forward-regexp "^;; BPM: [0-9]+"))
 
 (defun tracker-goto-currently-viewed-pattern ()
-  "Places the point at the beginning of the current pattern field."
+  "Place the point at the beginning of the current pattern field."
   (interactive)
   (tracker-goto-pattern (tracker-current-pattern)))
 
 (defun tracker-goto-currently-playing-pattern ()
-  "Places the point at the beginning of the currently playing pattern field."
+  "Place the point at the beginning of the currently-playing pattern."
   (interactive)
   (tracker-goto-pattern (tracker-playing-pattern)))
 
@@ -153,7 +153,7 @@
     (nreverse res)))
 
 (defun tracker-number-of-patterns ()
-  "Counts the total number of patterns in the buffer."
+  "Get the total number of patterns in the buffer."
   (save-excursion
     (goto-char (point-min))
     (count-matches tracker-pattern-regexp)))
@@ -212,7 +212,7 @@
   tracker-current-playing-pattern)
 
 (defvar tracker-latched-p nil
-  "Whether or not the tracker should loop only this pattern when playing.")
+  "True if the tracker should loop only its current pattern when playing.")
 
 (make-variable-buffer-local 'tracker-latched-p)
 (set-default 'tracker-latched-p nil)
@@ -255,7 +255,7 @@
              (looking-at "^;; BPM: [0-9]+"))))))
 
 (defun tracker-write-template ()
-  "Writes the default template for the tracker."
+  "Write the default template for the tracker."
   (tracker-without-undo
    (save-excursion
      (goto-char (point-min))
@@ -320,7 +320,7 @@
   (force-mode-line-update))
 
 (defun tracker-after-change-function (start end length)
-  "The function run after the buffer is modified to mark a step as modified."
+  "Mark the associated step as modified after the buffer is modified."
   (save-excursion
     (goto-char start)
     (when-let ((pattern (tracker-pattern-under-point))
@@ -373,13 +373,13 @@
   (/ (/ 60 (float bpm)) 4))
 
 (defvar tracker-current-playing-pattern nil
-  "The number of the currently-playing pattern.")
+  "The currently-playing pattern number.")
 
 (make-variable-buffer-local 'tracker-current-playing-pattern)
 (set-default 'tracker-current-playing-pattern nil)
 
 (defvar tracker-current-playing-step nil
-  "The number of the currently-playing step.")
+  "The currently-playing step number.")
 
 (make-variable-buffer-local 'tracker-current-playing-step)
 (set-default 'tracker-current-playing-step nil)
@@ -468,7 +468,9 @@
                              (tracker-number-of-patterns))))
 
 (defun tracker-latch (&optional enable)
-  "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off."
+  "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off.
+
+See also: `tracker-toggle-latch'"
   (interactive "p")
   (setf tracker-latched-p (if (booleanp enable)
                               enable
@@ -493,7 +495,7 @@
       (read (buffer-substring (point) (progn (forward-sexp) (point)))))))
 
 (defun tracker-confirm-step ()
-  "Confirms the edits to the current step."
+  "Confirm edits to the current step."
   (interactive)
   (if-let ((current-step (tracker-step-under-point)))
       (save-excursion
