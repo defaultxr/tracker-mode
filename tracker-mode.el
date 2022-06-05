@@ -320,29 +320,37 @@
                                        (number-to-string tracker-current-playing-step)))))
   (force-mode-line-update))
 
+(defvar tracker-mode-modifying-buffer-p nil
+  "True if tracker-mode is modifying the buffer and `tracker-after-change-function' should ignore changes.")
+
+(make-variable-buffer-local 'tracker-mode-modifying-buffer-p)
+(set-default 'tracker-mode-modifying-buffer-p nil)
+
 (defun tracker-after-change-function (start end length)
   "Mark the associated step as modified after the buffer is modified."
-  (save-excursion
-    (goto-char start)
-    (when-let ((pattern (tracker-pattern-at-point))
-               (step (tracker-step-at-point)))
-      (tracker-mark-step step pattern 'modified))))
+  (unless tracker-mode-modifying-buffer-p
+    (save-excursion
+      (goto-char start)
+      (when-let ((pattern (tracker-pattern-at-point))
+                 (step (tracker-step-at-point)))
+        (tracker-mark-step step pattern 'modified)))))
 
 (defun tracker-mark-step (step pattern type)
-  "Mark STEP in PATTERN as modified (M), erroring (E), or correct (blank).  TYPE should be either 'error, 'modified, or 'correct."
+  "Mark STEP in PATTERN as modified (M), erroring (E), or confirmed (blank).  TYPE should be either 'error, 'modified, or 'confirmed."
   (tracker-without-undo
    (save-excursion
-     (when (tracker-goto-step step pattern)
-       (beginning-of-line)
-       (forward-char 3)
-       (delete-char 1)
-       (insert (cl-case type
-                 (error "E")
-                 (modified "M")
-                 (correct " ")))))))
+     (let ((tracker-mode-modifying-buffer-p t))
+       (when (tracker-goto-step step pattern)
+         (beginning-of-line)
+         (forward-char 3)
+         (delete-char 1)
+         (insert (cl-case type
+                   (error "E")
+                   (modified "M")
+                   (confirmed " "))))))))
 
 (defvar tracker-confirmed-steps nil
-  "The hash table of the track's confirmed steps.")
+  "The hash table mapping pattern and step numbers to the code for that step.")
 
 (make-variable-buffer-local 'tracker-confirmed-steps)
 (set-default 'tracker-confirmed-steps nil)
@@ -351,21 +359,26 @@
   "Create the `tracker-confirmed-steps' hash table."
   (setf tracker-confirmed-steps (make-hash-table :test 'equal)))
 
-(defun tracker-step-id (step pattern)
-  "Get a key for the `tracker-confirmed-steps' hash to access STEP in PATTERN."
-  (list pattern step))
+(defun tracker-step-id (step pattern &optional key)
+  "Get a key for the `tracker-confirmed-steps' hash to access STEP in PATTERN.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
+  (list* pattern step key))
 
-(defun tracker-get-confirmed-step (step pattern)
-  "Get the confirmed step STEP in PATTERN from the `tracker-confirmed-steps' hash."
-  (gethash (tracker-step-id step pattern) tracker-confirmed-steps))
+(defun tracker-confirmed-step (step pattern &optional key)
+  "Get the confirmed step STEP in PATTERN from the `tracker-confirmed-steps' hash.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
+  (gethash (tracker-step-id step pattern key) tracker-confirmed-steps))
 
-(defun tracker-set-confirmed-step (step pattern value)
-  "Set STEP in PATTERN to VALUE in the `tracker-confirmed-steps' hash."
-  (setf (gethash (tracker-step-id step pattern) tracker-confirmed-steps) value))
+(defun tracker-confirmed-step-set (code step pattern &optional key)
+  (when key
+    (error "KEY is not supported when setting `tracker-confirmed-step'"))
+  (puthash (tracker-step-id step pattern)
+           (eval `(lambda () ,(read code)))
+           tracker-confirmed-steps)
+  (puthash (tracker-step-id step pattern 'string)
+           code
+           tracker-confirmed-steps))
 
-(defun tracker-delete-confirmed-step (step pattern)
-  "Delete STEP in PATTERN from the `tracker-confirmed-steps' hash."
-  (remhash (tracker-step-id step pattern) tracker-confirmed-steps))
+(gv-define-setter tracker-confirmed-step (code step pattern &optional key)
+  `(tracker-confirmed-step-set ,code ,step ,pattern ,key))
 
 ;;; main loop and associated stuff
 
@@ -391,7 +404,7 @@
     (with-current-buffer buffer
       (setf tracker-current-playing-step step
             tracker-current-playing-pattern pattern)
-      (when-let ((c-step (tracker-get-confirmed-step step pattern)))
+      (when-let ((c-step (tracker-confirmed-step step pattern)))
         (condition-case err (funcall c-step)
           (error
            (message "Tracker got a %s when attempting to run step %d in pattern %d."
@@ -488,32 +501,32 @@ See also: `tracker-latch-toggle'"
 
 ;;; steps
 
-(defun tracker-read-step (step &optional pattern)
-  "Attempt to read the elisp from STEP in PATTERN."
+(defun tracker-step-string (step &optional pattern)
+  "Get the code from STEP in PATTERN as a string."
   (save-excursion
     (when (and (tracker-goto-step step (or pattern (tracker-current-pattern)))
                (looking-at "("))
-      (read (buffer-substring (point) (progn (forward-sexp) (point)))))))
+      (buffer-substring-no-properties (point) (progn (forward-sexp) (point))))))
 
 (defun tracker-confirm-step ()
   "Confirm edits to the current step."
   (interactive)
-  (if-let ((current-step (tracker-step-at-point)))
-      (save-excursion
-        (let ((current-pattern (tracker-pattern-at-point))
-              (elisp (tracker-read-step current-step)))
-          (tracker-set-confirmed-step current-step current-pattern (eval `(lambda () ,elisp)))
-          (tracker-mark-step current-step current-pattern 'correct)))
-    (save-excursion
-      (beginning-of-line)
-      (cond ((looking-at "^;; BPM: \\(.+\\)$")
-             (setf tracker-bpm (string-to-number (match-string-no-properties 1)))
-             (tracker-update-header))
-            ((looking-at "^;; TRACK: \\(.+\\)$")
-             (setf tracker-track-name (match-string-no-properties 1))
-             (tracker-update-header))
-            (t
-             (message "The point does not appear to be on a step."))))))
+  (save-excursion
+    (if-let ((step (tracker-step-at-point)))
+        (let* ((pattern (tracker-pattern-at-point))
+               (elisp (tracker-step-string step pattern)))
+          (setf (tracker-confirmed-step step pattern) elisp)
+          (tracker-mark-step step pattern 'confirmed))
+      (progn
+        (beginning-of-line)
+        (cond ((looking-at "^;; BPM: \\(.+\\)$")
+               (setf tracker-bpm (string-to-number (match-string-no-properties 1)))
+               (tracker-update-header))
+              ((looking-at "^;; TRACK: \\(.+\\)$")
+               (setf tracker-track-name (match-string-no-properties 1))
+               (tracker-update-header))
+              (t
+               (message "The point does not appear to be on a step.")))))))
 
 ;;; transport
 
