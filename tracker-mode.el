@@ -501,12 +501,34 @@ See also: `tracker-latch-toggle'"
 
 ;;; steps
 
-(defun tracker-step-string (step &optional pattern)
-  "Get the code from STEP in PATTERN as a string."
+(defun tracker-step-bounds (&optional step pattern)
+  "Get the bounds of the current text in STEP of PATTERN."
   (save-excursion
-    (when (and (tracker-goto-step step (or pattern (tracker-current-pattern)))
-               (looking-at "("))
-      (buffer-substring-no-properties (point) (progn (forward-sexp) (point))))))
+    (let ((start (progn
+                   (tracker-goto-step (or step (tracker-step-at-point)) (or pattern (tracker-pattern-at-point)))
+                   (point))))
+      (list
+       start
+       (let ((next-pat-pos (save-excursion
+                             (if (search-forward-regexp tracker-pattern-regexp nil t)
+                                 (progn
+                                   (beginning-of-line)
+                                   (point))
+                               (point-max)))))
+         (max start
+              (or (when (search-forward-regexp tracker-step-regexp next-pat-pos t)
+                    (backward-sexp 2)
+                    (forward-sexp)
+                    (point))
+                  (save-excursion
+                    (goto-char next-pat-pos)
+                    (backward-sexp)
+                    (forward-sexp)
+                    (point)))))))))
+
+(defun tracker-step-string (&optional step pattern)
+  "Get the code from STEP in PATTERN as a string."
+  (apply #'buffer-substring-no-properties (tracker-step-bounds step pattern)))
 
 (defun tracker-confirm-step ()
   "Confirm edits to the current step."
