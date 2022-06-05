@@ -556,7 +556,7 @@ See also: `tracker-latch-toggle'"
         (pattern (or pattern (tracker-pattern-at-point))))
     (apply #'delete-region (tracker-step-bounds step pattern))
     (tracker-goto-step step pattern)
-    (insert (tracker-confirmed-step step pattern 'string))
+    (insert (or (tracker-confirmed-step step pattern 'string) ""))
     (tracker-mark-step step pattern 'confirmed)))
 
 ;;; transport
