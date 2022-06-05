@@ -104,6 +104,7 @@
 (defun tracker-goto-step (step &optional pattern)
   "Place the point at STEP in PATTERN (or the current if none specified)."
   (interactive "NStep: ")
+  (tracker-goto-pattern pattern)
   (search-backward-regexp tracker-pattern-regexp)
   (search-forward-regexp (format "^%03d. " step)))
 
