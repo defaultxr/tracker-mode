@@ -74,6 +74,12 @@
 
 ;;; internal tracker variables + functions
 
+(defvar tracker-title-regexp "^;+ T[Rr][Aa][Cc][Kk]: \\(.*\\)$"
+  "The regexp used to match against the track's title line.")
+
+(defvar tracker-bpm-regexp "^;+ BPM: \\([0-9]+\\)$"
+  "The regexp used to match against the track's BPM line.")
+
 (defvar tracker-pattern-regexp "^;+ Pattern \\([0-9]+\\):"
   "The regexp used to match against pattern headers.")
 
@@ -92,7 +98,7 @@
   "Place the point at the end of the title field."
   (interactive)
   (goto-char (point-min))
-  (search-forward ";; TRACK: ")
+  (search-forward-regexp tracker-title-regexp)
   (end-of-line))
 
 (defun tracker-goto-step (step &optional pattern)
@@ -105,7 +111,7 @@
   "Place the point at the end of the BPM field."
   (interactive)
   (goto-char (point-min))
-  (search-forward-regexp "^;; BPM: [0-9]+"))
+  (search-forward-regexp tracker-bpm-regexp))
 
 (defun tracker-goto-currently-viewed-pattern ()
   "Place the point at the beginning of the current pattern field."
@@ -249,10 +255,10 @@
   (let ((buffer (or buffer (current-buffer))))
     (save-excursion
       (goto-char (point-min))
-      (and (looking-at "^;; TRACK: ")
+      (and (looking-at tracker-title-regexp)
            (progn
              (goto-line 2)
-             (looking-at "^;; BPM: [0-9]+"))))))
+             (looking-at tracker-bpm-regexp))))))
 
 (defun tracker-write-template ()
   "Write the default template for the tracker."
@@ -541,11 +547,11 @@ See also: `tracker-latch-toggle'"
           (tracker-mark-step step pattern 'confirmed))
       (progn
         (beginning-of-line)
-        (cond ((looking-at "^;; BPM: \\(.+\\)$")
-               (setf tracker-bpm (string-to-number (match-string-no-properties 1)))
-               (tracker-update-header))
-              ((looking-at "^;; TRACK: \\(.+\\)$")
+        (cond ((looking-at tracker-title-regexp)
                (setf tracker-track-name (match-string-no-properties 1))
+               (tracker-update-header))
+              ((looking-at tracker-bpm-regexp)
+               (setf tracker-bpm (string-to-number (match-string-no-properties 1)))
                (tracker-update-header))
               (t
                (message "The point does not appear to be on a step.")))))))
