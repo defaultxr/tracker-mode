@@ -276,7 +276,8 @@
   (interactive)
   (unless (tracker-buffer-p)
     (get-buffer-create "*Tracker*")
-    (switch-to-buffer "*Tracker*"))
+    (switch-to-buffer "*Tracker*")
+    (tracker-write-template))
   (tracker-mode))
 
 (defface tracker-header-heading-face
@@ -606,7 +607,6 @@ See also: `tracker-latch-toggle'"
   (unless (tracker-buffer-p)
     (error "This does not appear to be a tracker-mode-formatted buffer.  Try M-x tracker to create and initialize a new tracker-mode buffer"))
   (use-local-map tracker-mode-map)
-  (tracker-write-template)
   (tracker-make-confirmed-steps-hash)
   (tracker-update-header)
   (add-to-list 'after-change-functions 'tracker-after-change-function)
