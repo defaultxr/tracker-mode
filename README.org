@@ -29,7 +29,7 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 - ~C-c C-l~ - ~tracker-latch-toggle~ - toggles "latching" the current pattern. while latched, the current pattern will be looped instead of proceeding to the next.
 - ~C-c C-i~ - ~tracker-insert-pattern~ - inserts a new pattern in the song after the current.
 - ~C-c C-c~ - ~tracker-confirm-step~ - confirms and applies the changes you've made to the current step, the BPM, track title, etc.
-# - ~C-c C-k~ - ~tracker-revert-step~ - reverts the current step, undoing any changes you've made--NOT YET IMPLEMENTED.
+- ~C-c C-k~ - ~tracker-revert-step~ - reverts the current step, undoing any changes you've made.
 - ~M-g b~ - ~tracker-goto-bpm~ - moves the point to the BPM field.
 - ~M-g s~ - ~tracker-goto-step~ - moves the point to the specified step in the current pattern.
 - ~M-g t~ - ~tracker-goto-title~ - moves the point to the title field.

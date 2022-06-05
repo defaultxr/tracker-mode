@@ -550,6 +550,16 @@ See also: `tracker-latch-toggle'"
               (t
                (message "The point does not appear to be on a step.")))))))
 
+(defun tracker-revert-step (&optional step pattern)
+  "Undo edits to STEP in PATTERN, reverting back to its last confirmed code."
+  (interactive)
+  (let ((step (or step (tracker-step-at-point)))
+        (pattern (or pattern (tracker-pattern-at-point))))
+    (apply #'delete-region (tracker-step-bounds step pattern))
+    (tracker-goto-step step pattern)
+    (insert (tracker-confirmed-step step pattern 'string))
+    (tracker-mark-step step pattern 'confirmed)))
+
 ;;; transport
 
 (defun tracker-play ()
@@ -626,7 +636,7 @@ See also: `tracker-latch-toggle'"
     (define-key map (kbd "C-c C-i") 'tracker-insert-pattern)
     (define-key map (kbd "C-c C-d") 'tracker-delete-pattern)
     (define-key map (kbd "C-c C-c") 'tracker-confirm-step)
-    ;; (define-key map (kbd "C-c C-k") 'tracker-revert-step) ;; FIX
+    (define-key map (kbd "C-c C-k") 'tracker-revert-step)
     (define-key map (kbd "M-g b") 'tracker-goto-bpm)
     (define-key map (kbd "M-g s") 'tracker-goto-step)
     (define-key map (kbd "M-g t") 'tracker-goto-title)
