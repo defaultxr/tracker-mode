@@ -583,22 +583,25 @@ See also: `tracker-latch-toggle'"
 
 ;;; utility functions
 
+(defun tracker-symbol-to-string (symbol)
+  "Convert SYMBOL to a string."
+  (let ((name (symbol-name symbol)))
+    (downcase (string-trim-left name ":"))))
 
 ;;; change numbers
 
 (defun tracker-change-number (change)
   "Increase or decrease a number under the point by CHANGE."
   (interactive "p")
-  (tracker-without-undo
-   (save-excursion
-     (search-backward-regexp "[^0-9-]")
-     (forward-char)
-     (let* ((start (point))
-            (end (1- (save-excursion (search-forward-regexp "[^0-9-]"))))
-            (string (buffer-substring start end)))
-       (when (not (eq 0 (- end start)))
-         (delete-char (- end start))
-         (insert (number-to-string (+ (or change 1) (string-to-number string)))))))))
+  (save-excursion
+    (search-backward-regexp "[^0-9-]")
+    (forward-char)
+    (let* ((start (point))
+           (end (1- (save-excursion (search-forward-regexp "[^0-9-]"))))
+           (string (buffer-substring-no-properties start end)))
+      (unless (eql 0 (- end start))
+        (delete-char (- end start))
+        (insert (number-to-string (+ (or change 1) (string-to-number string))))))))
 
 (defun tracker-increase-number (&optional increase)
   "Increase the number under the point by INCREASE."
