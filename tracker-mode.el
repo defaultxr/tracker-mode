@@ -438,21 +438,17 @@
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
      (list (read-number "Number of steps: " 16))))
-  (let ((number (tracker-patterns-count))
-        (buffer-invisibility-spec nil))
+  (let ((number (tracker-patterns-count)))
     (save-excursion
-      (or (ignore-errors ;; FIX
+      (or (ignore-errors
             (tracker-goto-end-of-current-pattern))
           (goto-char (point-max)))
-      (insert (propertize
-               (concat ";; Pattern " (number-to-string number) ":\n"
-                       (let ((result ""))
-                         (dotimes (step size result)
-                           (setf result (concat result (format "%03d  %s" step (string ?\n)))))
-                         result)
-                       (string ?\n))
-               'invisible (intern (concat "tracker-pattern-" (number-to-string number))))))
-    (add-to-invisibility-spec (intern (concat "tracker-pattern-" (number-to-string number))))))
+      (insert (concat ";; Pattern " (number-to-string number) ":\n"
+                      (let ((result ""))
+                        (dotimes (step size result)
+                          (setf result (concat result (format "%03d  %s" step (string ?\n)))))
+                        result)
+                      (string ?\n))))))
 
 (defun tracker-delete-pattern ()
   "Delete the pattern under point."
