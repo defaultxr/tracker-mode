@@ -350,17 +350,21 @@
 
 (defun tracker-mark-step (step pattern type)
   "Mark STEP in PATTERN as modified (M), erroring (E), or confirmed (blank).  TYPE should be either 'error, 'modified, or 'confirmed."
-  (tracker-without-undo
-   (save-excursion
-     (let ((tracker-mode-modifying-buffer-p t))
-       (when (tracker-goto-step step pattern)
-         (beginning-of-line)
-         (forward-char 3)
-         (delete-char 1)
-         (insert (cl-case type
-                   (error "E")
-                   (modified "M")
-                   (confirmed " "))))))))
+  (unless (eql type 'modified)
+    (buffer-disable-undo))
+  (save-excursion
+    (let ((tracker-mode-modifying-buffer-p t)
+          (inhibit-read-only t))
+      (when (tracker-goto-step step pattern)
+        (beginning-of-line)
+        (forward-char 3)
+        (delete-char 1)
+        (insert (cl-case type
+                  (error "E")
+                  (modified "M")
+                  (confirmed " "))))))
+  (unless (eql type 'modified)
+    (buffer-enable-undo)))
 
 (defvar tracker-confirmed-steps nil
   "The hash table mapping pattern and step numbers to the code for that step.")
