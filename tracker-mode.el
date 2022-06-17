@@ -89,8 +89,10 @@
 (defmacro tracker-without-undo (&rest body)
   "Perform BODY without modifying the buffer's undo list."
   ;; there might be a better way to do this...
-  `(let ((buffer-undo-list t))
-     ,@body))
+  `(progn
+     (buffer-disable-undo)
+     ,@body
+     (buffer-enable-undo)))
 
 ;;; functions to move the point around
 
