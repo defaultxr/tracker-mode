@@ -265,16 +265,24 @@
 
 (defun tracker-write-template ()
   "Write the default template for the tracker."
-  (save-excursion
-    (goto-char (point-min))
-    (unless (looking-at tracker-title-regexp)
-      (insert (concat ";; Track: Untitled" (string ?\n))))
-    (goto-line 2)
-    (unless (looking-at tracker-bpm-regexp)
-      (insert (concat ";; BPM: 120" (string ?\n ?\n))))
-    (goto-char (point-min))
-    (unless (search-forward-regexp tracker-pattern-regexp nil t)
-      (tracker-insert-pattern 16))))
+  (let ((tracker-mode-modifying-buffer-p t))
+    (tracker-without-undo
+     (save-excursion
+       (goto-char (point-min))
+       (unless (looking-at tracker-title-regexp)
+         (insert (propertize ";; Track: "
+                             'read-only "Cannot edit tracker-mode template"
+                             'rear-nonsticky t))
+         (insert "Untitled\n"))
+       (goto-line 2)
+       (unless (looking-at tracker-bpm-regexp)
+         (insert (propertize ";; BPM: "
+                             'read-only "Cannot edit tracker-mode template"
+                             'rear-nonsticky t))
+         (insert "120\n\n"))
+       (goto-char (point-min))
+       (unless (search-forward-regexp tracker-pattern-regexp nil t)
+         (tracker-insert-pattern 16))))))
 
 (defun tracker ()
   "Initialize a buffer for `tracker-mode', creating one if necessary."
