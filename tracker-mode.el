@@ -94,6 +94,13 @@
      ,@body
      (buffer-enable-undo)))
 
+;;; utility functions
+
+(defun tracker-symbol-to-string (symbol)
+  "Convert SYMBOL to a string."
+  (let ((name (symbol-name symbol)))
+    (downcase (string-trim-left name ":"))))
+
 ;;; functions to move the point around
 
 (defun tracker-goto-title ()
@@ -595,13 +602,6 @@ See also: `tracker-latch-toggle'"
   (if tracker-playing-p
       (tracker-stop)
     (tracker-play)))
-
-;;; utility functions
-
-(defun tracker-symbol-to-string (symbol)
-  "Convert SYMBOL to a string."
-  (let ((name (symbol-name symbol)))
-    (downcase (string-trim-left name ":"))))
 
 ;;; change numbers
 
