@@ -1,4 +1,4 @@
-;;; tracker-mode.el --- Tracker-inspired livecodable sequencer mode
+;;; tracker-mode.el --- Tracker-inspired sequencer -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2022 modula t.
 
