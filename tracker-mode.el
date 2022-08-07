@@ -557,6 +557,26 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
                            (point)))))
     (message "The point does not appear to be in a pattern.")))
 
+(defun tracker-resize-pattern (steps)
+  "Add or remove steps to the pattern under point to make it STEPS steps in length."
+  (interactive "NSteps? ")
+  (let ((current-num-steps (tracker-steps-count)))
+    (tracker-modifying-buffer
+     (if (> steps current-num-steps)
+         (progn
+           (tracker-goto-end-of-pattern)
+           (search-forward "\n" nil t)
+           (unless (bolp)
+             (end-of-line)
+             (insert "\n"))
+           (tracker-insert-steps (- steps current-num-steps) current-num-steps))
+       (delete-region (save-excursion
+                        (tracker-goto-step steps)
+                        (beginning-of-line)
+                        (1- (point)))
+                      (save-excursion
+                        (tracker-goto-end-of-pattern)
+                        (point)))))))
 
 (defun tracker-latch (&optional enable)
   "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off.
