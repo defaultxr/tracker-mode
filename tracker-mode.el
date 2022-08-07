@@ -158,6 +158,26 @@
     (and (search-forward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t)
          (backward-char))))
 
+(defun tracker-goto-next-pattern (&optional num wrap)
+  "Move point to the next pattern."
+  (interactive "p")
+  (let* ((num (or num 1))
+         (desired (+ num (or (tracker-pattern-at-point) 0))))
+    (if wrap
+        (tracker-goto-pattern (mod desired (tracker-patterns-count)))
+      (cond ((>= desired (tracker-patterns-count))
+             (goto-char (point-max)))
+            ((< desired 0)
+             (goto-char (point-min)))
+            (t
+             (tracker-goto-pattern desired))))))
+
+(defun tracker-goto-previous-pattern (&optional num wrap)
+  "Move point to the previous pattern."
+  (interactive "p")
+  (let ((num (or num 1)))
+    (tracker-next-pattern (- num))))
+
 ;;; functions to get data
 
 (defun tracker-patterns ()
@@ -537,17 +557,6 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
                            (point)))))
     (message "The point does not appear to be in a pattern.")))
 
-(defun tracker-next-pattern ()
-  "Move point to the next pattern."
-  (interactive)
-  (tracker-goto-pattern (mod (1+ (or (tracker-pattern-at-point) 0))
-                             (tracker-patterns-count))))
-
-(defun tracker-previous-pattern ()
-  "Move point to the previous pattern."
-  (interactive)
-  (tracker-goto-pattern (mod (1- (or (tracker-pattern-at-point) 0))
-                             (tracker-patterns-count))))
 
 (defun tracker-latch (&optional enable)
   "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off.
@@ -690,8 +699,8 @@ See also: `tracker-latch-toggle'"
   (let ((map (make-sparse-keymap "Tracker-Mode")))
     (define-key map (kbd "<M-down>") 'tracker-decrease-number)
     (define-key map (kbd "<M-up>") 'tracker-increase-number)
-    (define-key map (kbd "C-c C-n") 'tracker-next-pattern)
-    (define-key map (kbd "C-c C-p") 'tracker-previous-pattern)
+    (define-key map (kbd "C-c C-n") 'tracker-goto-next-pattern)
+    (define-key map (kbd "C-c C-p") 'tracker-goto-previous-pattern)
     ;; (define-key map (kbd "M-n") 'tracker-next-field) ; goes to next step in the pattern, etc
     ;; (define-key map (kbd "M-p") 'tracker-previous-field)
     (define-key map (kbd "C-c C-s") 'tracker-play-or-stop)
