@@ -208,9 +208,12 @@
                      0))
         res)
     (save-excursion
-      (tracker-goto-pattern pattern)
-      (while (search-forward-regexp tracker-step-regexp nil t)
-        (push (string-to-number (match-string-no-properties 1)) res)))
+      (let ((pattern-end (progn
+                           (tracker-goto-end-of-pattern)
+                           (point))))
+        (tracker-goto-pattern pattern)
+        (while (search-forward-regexp tracker-step-regexp pattern-end t)
+          (push (string-to-number (match-string-no-properties 1)) res))))
     (nreverse res)))
 
 (defun tracker-steps-count (&optional pattern)
