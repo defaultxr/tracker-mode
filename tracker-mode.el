@@ -207,9 +207,10 @@
       (count-matches tracker-step-regexp
                      (point)
                      (save-excursion
-                       (ignore-errors
-                         (tracker-goto-pattern (1+ pattern)))
-                       (point))))))
+                       (or (when (search-forward-regexp tracker-pattern-regexp nil t)
+                             (beginning-of-line)
+                             (point))
+                           (point-max)))))))
 
 (defun tracker-step-at-point ()
   "Get the step number that the point is on, or nil if the point is not located on a step."
