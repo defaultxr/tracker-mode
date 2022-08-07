@@ -101,8 +101,7 @@
 
 (defun tracker-symbol-to-string (symbol)
   "Convert SYMBOL to a string."
-  (let ((name (symbol-name symbol)))
-    (downcase (string-trim-left name ":"))))
+  (downcase (string-trim-left (symbol-name symbol) ":")))
 
 ;;; functions to move the point around
 
