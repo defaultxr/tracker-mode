@@ -113,10 +113,9 @@
   (end-of-line))
 
 (defun tracker-goto-step (step &optional pattern)
-  "Place the point at STEP in PATTERN (or the current if none specified)."
+  "Place the point at the start of STEP in PATTERN (or the current if none specified)."
   (interactive "NStep: ")
-  (tracker-goto-pattern pattern)
-  (search-backward-regexp tracker-pattern-regexp)
+  (tracker-goto-pattern (or pattern (tracker-pattern-at-point)))
   (search-forward-regexp (format "^%03d. " step)))
 
 (defun tracker-goto-bpm ()
