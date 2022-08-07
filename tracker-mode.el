@@ -264,9 +264,9 @@
 ;;; interface code
 
 (defun tracker-buffer-p (&optional buffer)
-  "True if BUFFER appears to be a `tracker-mode' buffer."
-  (let ((buffer (or buffer (current-buffer))))
-    (save-excursion
+  "True if BUFFER looks like a `tracker-mode' buffer."
+  (save-excursion
+    (with-current-buffer (or buffer (current-buffer))
       (goto-char (point-min))
       (and (looking-at tracker-title-regexp)
            (progn
