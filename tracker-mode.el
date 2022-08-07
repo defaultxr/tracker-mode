@@ -128,7 +128,7 @@
 (defun tracker-goto-currently-viewed-pattern ()
   "Place the point at the beginning of the current pattern field."
   (interactive)
-  (tracker-goto-pattern (tracker-current-pattern)))
+  (tracker-goto-pattern (tracker-pattern-at-point)))
 
 (defun tracker-goto-currently-playing-pattern ()
   "Place the point at the beginning of the currently-playing pattern."
@@ -175,10 +175,6 @@
   (save-excursion
     (goto-char (point-min))
     (count-matches tracker-pattern-regexp)))
-
-(defun tracker-current-pattern ()
-  "Get the number of the pattern under point."
-  (or (tracker-pattern-at-point) 0))
 
 (defun tracker-pattern-at-point ()
   "Get the number of the pattern that the point is in, or nil if none."
