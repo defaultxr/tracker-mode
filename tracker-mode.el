@@ -27,21 +27,24 @@
 
 ;;; Commentary:
 ;;
-;; This package provides a major mode for Emacs that emulates (or attempts to)
-;; music trackers like Renoise, MilkyTracker, or SunVox.
+;; This package provides a major mode for Emacs for sequencing of code
+;; emulates (or attempts to) music trackers like Renoise,
+;; MilkyTracker, or SunVox.
 ;;
-;; A tracker is a sequencer used for making music.  In a tracker, musical data
-;; is typically represented as a grid of rows and columns.  Each column usually
-;; represents a separate instrument or channel, and each row represents a step
-;; in the sequence.
+;; A tracker is a sequencer used for making music.  In a tracker,
+;; musical data is typically represented as a grid of rows and
+;; columns.  Each column usually represents a separate instrument or
+;; channel, and each row represents a step in the sequence.
 ;;
-;; Tracker-Mode can not (yet) handle multiple channels simultaneously, however
-;; it does have the ability to save multiple patterns and switch between them.
+;; Tracker-Mode can not (yet) handle multiple channels simultaneously,
+;; however it does have the ability to save multiple patterns and
+;; switch between them.
 ;;
-;; Tracker-Mode does not produce sound on its own, as it is just a sequencer
-;; that triggers synthesizers by sending OSC messages.  Right now only
-;; SuperCollider is being tested as its sound engine, but it should be possible
-;; to send to other synths as well with some minor hacking.
+;; Tracker-Mode does not produce sound on its own, as it is just a
+;; sequencer that triggers synthesizers by sending OSC messages.
+;; Right now only SuperCollider is being tested as its sound engine,
+;; but it should be possible to send to other synths as well with some
+;; minor hacking.
 
 ;;; Code:
 
