@@ -440,7 +440,7 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
 
 (defun tracker-step-id (step pattern &optional key)
   "Get a key for the `tracker-confirmed-steps' hash to access STEP in PATTERN.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
-  (list* pattern step key))
+  (list pattern step key))
 
 (defun tracker-confirmed-step (step pattern &optional key)
   "Get the confirmed step STEP in PATTERN from the `tracker-confirmed-steps' hash.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
@@ -449,12 +449,15 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
 (defun tracker-confirmed-step-set (code step pattern &optional key)
   (when key
     (error "KEY is not supported when setting `tracker-confirmed-step'"))
-  (puthash (tracker-step-id step pattern)
-           (eval `(lambda () ,(read code)))
-           tracker-confirmed-steps)
-  (puthash (tracker-step-id step pattern 'string)
-           code
-           tracker-confirmed-steps))
+  (let ((code (if (string= "" code)
+                  "nil"
+                code)))
+    (puthash (tracker-step-id step pattern)
+             (eval `(lambda () ,(read code)))
+             tracker-confirmed-steps)
+    (puthash (tracker-step-id step pattern 'string)
+             code
+             tracker-confirmed-steps)))
 
 (gv-define-setter tracker-confirmed-step (code step pattern &optional key)
   `(tracker-confirmed-step-set ,code ,step ,pattern ,key))
