@@ -401,15 +401,20 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
                                        (number-to-string tracker-current-playing-step)))))
   (force-mode-line-update))
 
+(defun tracker-point-in-step-field-p ()
+  "True when point is inside a step field."
+  (and (tracker-step-at-point)
+       (>= (current-column) 5)))
 
 (defun tracker-after-change-function (start end length)
   "Mark the associated step as modified after the buffer is modified."
   (unless tracker-modifying-buffer-p
     (save-excursion
       (goto-char start)
-      (when-let ((pattern (tracker-pattern-at-point))
-                 (step (tracker-step-at-point)))
-        (tracker-mark-step step pattern 'modified)))))
+      (when (tracker-point-in-step-field-p)
+        (when-let ((pattern (tracker-pattern-at-point))
+                   (step (tracker-step-at-point)))
+          (tracker-mark-step step pattern 'modified))))))
 
 (defun tracker-mark-step (step pattern type)
   "Mark STEP in PATTERN as modified (M), erroring (E), or confirmed (blank).  TYPE should be either 'error, 'modified, or 'confirmed."
