@@ -491,9 +491,11 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
            (tracker-mark-step step pattern 'error))))
       (tracker-update-header))))
 
-(defun tracker-loop (step pattern &optional buffer)
-  "The main loop of the tracker; play STEP in PATTERN in BUFFER with `tracker-step', then queue the next iteration of the loop."
-  (let ((buffer (or buffer (current-buffer))))
+(defun tracker-loop (step pattern buffer)
+  "The main loop of the tracker; play STEP in PATTERN in BUFFER with `tracker-step', then queue the next iteration of the loop.
+
+Note that this is an \"internal\" function; users should start/stop the tracker with C-c C-s or `tracker-play-or-stop' instead."
+  (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (when tracker-playing-p
         (save-excursion
