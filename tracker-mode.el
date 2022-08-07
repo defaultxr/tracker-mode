@@ -142,9 +142,9 @@
   (search-forward-regexp "^;; Scratch:")
   (forward-char))
 
-(defun tracker-goto-end-of-current-pattern ()
-  "Place the point at the end of the current pattern."
-  (tracker-goto-step (1- (tracker-steps-count))))
+(defun tracker-goto-end-of-pattern (&optional pattern)
+  "Place the point at the end of PATTERN."
+  (goto-char (second (tracker-step-bounds (1- (tracker-steps-count)) pattern))))
 
 (defun tracker-goto-playing-step ()
   "Place the point at the beginning of the currently-playing step."
@@ -269,27 +269,78 @@
              (goto-line 2)
              (looking-at tracker-bpm-regexp))))))
 
-(defun tracker-write-template ()
-  "Write the default template for the tracker."
-  (let ((tracker-mode-modifying-buffer-p t))
-    (tracker-without-undo
-     (save-excursion
-       (goto-char (point-min))
-       (unless (looking-at tracker-title-regexp)
-         (insert (propertize ";; Track: "
-                             'read-only "Cannot edit tracker-mode template"
-                             'rear-nonsticky t))
-         (insert "Untitled\n"))
-       (goto-line 2)
-       (unless (looking-at tracker-bpm-regexp)
-         (insert (propertize ";; BPM: "
-                             'read-only "Cannot edit tracker-mode template"
-                             'rear-nonsticky t))
-         (insert "120\n\n"))
-       (goto-char (point-min))
-       (unless (search-forward-regexp tracker-pattern-regexp nil t)
-         (tracker-insert-pattern 16))))))
+(defvar tracker-modifying-buffer-p nil
+  "True if tracker-mode is modifying the buffer and `tracker-after-change-function' should ignore changes.")
 
+(make-variable-buffer-local 'tracker-modifying-buffer-p)
+(set-default 'tracker-modifying-buffer-p nil)
+
+(defmacro tracker-modifying-buffer (&rest body)
+  "Run BODY with variables set to allow modifications to the tracker-mode template/UI elements."
+  `(let ((tracker-modifying-buffer-p t)
+         (inhibit-read-only t))
+     ,@body))
+
+(defun tracker-ui-element (start end &optional ro-message additional-properties)
+  "Write a tracker interface element to the current buffer, at point."
+  (let ((intangible (getf additional-properties additional-properties (gensym)))
+        (props `(read-only ,(or ro-message "Cannot edit tracker-mode template") ,@additional-properties)))
+    (set-text-properties start (+ start 1) (list* 'cursor-intangible intangible props))
+    (set-text-properties (+ start 1) (- end 1) (list* 'cursor-intangible intangible props))
+    (set-text-properties (- end 1) end (list* 'rear-nonsticky t props))))
+
+(defun tracker-add-ui-element (text &optional ro-message additional-properties)
+  "Search for TEXT, and if it exists, propertize it as a UI element. If it does not exist, insert it as a UI element. Returns t if the text was inserted, or nil if it was already there."
+  (let* ((inserted nil)
+         (end (save-excursion (if (search-forward text nil t)
+                                  (point)
+                                (progn
+                                  (insert text)
+                                  (setq inserted t)
+                                  (point))))))
+    (tracker-ui-element (- end (length text)) end ro-message additional-properties)
+    (goto-char end)
+    inserted))
+
+(defun tracker-propertize-patterns ()
+  "Find all patterns in the buffer and ensure their UI elements are correctly propertized.
+
+See also: `tracker-insert-pattern', `tracker-write-template'"
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward-regexp "^;; Pattern [0-9]+:$" nil t)
+      (tracker-ui-element (save-excursion
+                            (beginning-of-line)
+                            (1- (point)))
+                          (point)
+                          "Cannot edit tracker-mode template; use `tracker-delete-pattern' to delete patterns")
+      (let ((pattern-end (save-excursion
+                           (tracker-goto-end-of-pattern)
+                           (point))))
+        (while (search-forward-regexp "^[0-9][0-9][0-9].." pattern-end t)
+          (tracker-ui-element (save-excursion
+                                (beginning-of-line)
+                                (1- (point)))
+                              (point)
+                              "Cannot edit step markers; use `tracker-resize-pattern' to change the number of steps in a pattern"))))))
+
+(defun tracker-write-template ()
+  "Write the default template for the tracker, or propertize it if it already exists."
+  (tracker-modifying-buffer
+   (tracker-without-undo
+    (save-excursion
+      (goto-char (point-min))
+      (when (and (/= (point-min) (point-max))
+                 (not (tracker-buffer-p)))
+        (error "This does not appear to be a tracker-mode-formatted buffer.  Try M-x tracker to create and initialize a new tracker-mode buffer"))
+      (when (tracker-add-ui-element ";; Track: ")
+        (insert "Untitled"))
+      (when (tracker-add-ui-element "\n;; BPM: ")
+        (insert "120\n\n"))
+      (goto-char (point-min))
+      (if (search-forward-regexp tracker-pattern-regexp nil t)
+          (tracker-propertize-patterns)
+        (tracker-insert-pattern 16))))))
 
 (defface tracker-header-heading-face
   '((t :inherit font-lock-keyword-face))
@@ -331,15 +382,10 @@
                                        (number-to-string tracker-current-playing-step)))))
   (force-mode-line-update))
 
-(defvar tracker-mode-modifying-buffer-p nil
-  "True if tracker-mode is modifying the buffer and `tracker-after-change-function' should ignore changes.")
-
-(make-variable-buffer-local 'tracker-mode-modifying-buffer-p)
-(set-default 'tracker-mode-modifying-buffer-p nil)
 
 (defun tracker-after-change-function (start end length)
   "Mark the associated step as modified after the buffer is modified."
-  (unless tracker-mode-modifying-buffer-p
+  (unless tracker-modifying-buffer-p
     (save-excursion
       (goto-char start)
       (when-let ((pattern (tracker-pattern-at-point))
@@ -350,17 +396,16 @@
   "Mark STEP in PATTERN as modified (M), erroring (E), or confirmed (blank).  TYPE should be either 'error, 'modified, or 'confirmed."
   (unless (eql type 'modified)
     (buffer-disable-undo))
-  (save-excursion
-    (let ((tracker-mode-modifying-buffer-p t)
-          (inhibit-read-only t))
-      (when (tracker-goto-step step pattern)
-        (beginning-of-line)
-        (forward-char 3)
-        (delete-char 1)
-        (insert (cl-case type
-                  (error "E")
-                  (modified "M")
-                  (confirmed " "))))))
+  (tracker-modifying-buffer
+   (save-excursion
+     (when (tracker-goto-step step pattern)
+       (beginning-of-line)
+       (forward-char 3)
+       (delete-char 1)
+       (insert (cl-case type
+                 (error "E")
+                 (modified "M")
+                 (confirmed " "))))))
   (unless (eql type 'modified)
     (buffer-enable-undo)))
 
@@ -445,23 +490,36 @@
 
 ;;; pattern editing
 
-(defun tracker-insert-pattern (&optional size)
+(defun tracker-insert-steps (steps &optional start)
+  "Insert STEPS additional steps at point, numbered starting at START."
+  (let ((start (or start 0)))
+    (dotimes (step steps)
+      (let ((start-point (point)))
+        (insert (format "%03d  \n" (+ start step)))
+        (tracker-ui-element (- (point) 7) (1- (point)) "Cannot edit step markers; use `tracker-resize-pattern' to change the number of steps in a pattern")))))
+
+(defun tracker-insert-pattern (&optional size) ; FIX: this inserts after the current pattern, but the pattern number is wrong if it's not the last pattern in the buffer
   "Insert a new pattern after the current one containing SIZE steps."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
      (list (read-number "Number of steps: " 16))))
-  (let ((number (tracker-patterns-count)))
+  (let ((inhibit-read-only t)
+        (number (tracker-patterns-count)))
     (save-excursion
-      (or (ignore-errors
-            (tracker-goto-end-of-current-pattern))
-          (goto-char (point-max)))
-      (insert (concat ";; Pattern " (number-to-string number) ":\n"
-                      (let ((result ""))
-                        (dotimes (step size result)
-                          (setf result (concat result (format "%03d  %s" step (string ?\n)))))
-                        result)
-                      (string ?\n))))))
+      (if (= 0 (tracker-patterns-count))
+          (goto-char (point-max))
+        (tracker-goto-end-of-pattern))
+      (or (search-forward "\n\n" nil t)
+          (progn
+            (ignore-errors (forward-char 2))
+            (unless (bolp)
+              (insert "\n\n"))))
+      (let ((start (point)))
+        (insert (concat ";; Pattern " (number-to-string number) ":\n"))
+        (tracker-ui-element (- start 1) (point) "Cannot edit tracker-mode template; use `tracker-delete-pattern' to delete patterns"))
+      (tracker-insert-steps size)
+      (insert "\n"))))
 
 (defun tracker-delete-pattern ()
   "Delete the pattern under point."
@@ -633,7 +691,6 @@ See also: `tracker-latch-toggle'"
   (let ((map (make-sparse-keymap "Tracker-Mode")))
     (define-key map (kbd "<M-down>") 'tracker-decrease-number)
     (define-key map (kbd "<M-up>") 'tracker-increase-number)
-    (define-key map (kbd "C-a") 'tracker-back-to-indent) ;; FIX: this breaks C-S-a; prevents activating the region
     (define-key map (kbd "C-c C-n") 'tracker-next-pattern)
     (define-key map (kbd "C-c C-p") 'tracker-previous-pattern)
     ;; (define-key map (kbd "M-n") 'tracker-next-field) ; goes to next step in the pattern, etc
@@ -666,6 +723,7 @@ See also: `tracker-latch-toggle'"
   "Tracker-inspired livecodable sequencer mode for Emacs."
   (use-local-map tracker-mode-map)
   (tracker-write-template)
+  (cursor-intangible-mode 1)
   (tracker-make-confirmed-steps-hash)
   (tracker-update-header)
   (add-to-list 'after-change-functions 'tracker-after-change-function)
