@@ -291,14 +291,6 @@
        (unless (search-forward-regexp tracker-pattern-regexp nil t)
          (tracker-insert-pattern 16))))))
 
-(defun tracker ()
-  "Initialize a buffer for `tracker-mode', creating one if necessary."
-  (interactive)
-  (unless (tracker-buffer-p)
-    (get-buffer-create "*Tracker*")
-    (switch-to-buffer "*Tracker*")
-    (tracker-write-template))
-  (tracker-mode))
 
 (defface tracker-header-heading-face
   '((t :inherit font-lock-keyword-face))
@@ -660,14 +652,21 @@ See also: `tracker-latch-toggle'"
     map)
   "Keymap for `tracker-mode'.")
 
-;;; initialize & register the mode with emacs
+;;; main functions/initialization
+
+(defun tracker ()
+  "Initialize a new buffer for `tracker-mode'."
+  (interactive)
+  (unless (tracker-buffer-p)
+    (get-buffer-create "*Tracker*")
+    (switch-to-buffer "*Tracker*"))
+  (tracker-mode))
 
 ;;;###autoload
 (define-derived-mode tracker-mode emacs-lisp-mode "Tracker"
   "Tracker-inspired livecodable sequencer mode for Emacs."
-  (unless (tracker-buffer-p)
-    (error "This does not appear to be a tracker-mode-formatted buffer.  Try M-x tracker to create and initialize a new tracker-mode buffer"))
   (use-local-map tracker-mode-map)
+  (tracker-write-template)
   (tracker-make-confirmed-steps-hash)
   (tracker-update-header)
   (add-to-list 'after-change-functions 'tracker-after-change-function)
