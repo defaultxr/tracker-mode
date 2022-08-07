@@ -8,9 +8,11 @@ Tracker-mode is a sequencer for Emacs loosely modelled after traditional tracker
 
 * Usage
 
-To start the tracker, ensure ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~ to load it. To start a new track, type ~M-x tracker~ to automatically create a new buffer and start the mode, or load a saved tracker-mode project by opening a file with a ~.trk~ or ~.track~ file extension.
+To load tracker-mode, ensure the directory containing ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~.
 
-To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished, press ~C-c C-c~ to confirm your edits to the step. To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
+To start a new track, type ~M-x tracker~, which will create a new buffer and activate the mode. Alternatively, you can load a saved tracker-mode project by opening a file with a ~.trk~ or ~.track~ file extension.
+
+To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished editing the step, press ~C-c C-c~ to confirm and apply your edits to the step. To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
 
 You can use ~C-c C-i~ to insert a new pattern, and ~C-c C-d~ to delete the pattern under point. ~M-up~ and ~M-down~ will increase or decrease the number under the point (this is useful, for example, if you want to gradually increase the BPM without manually having to retype each number).
 
@@ -38,8 +40,10 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 * Future
 
 - implement latency to improve timing
+- run the loop in its own thread rather than using timers
+- make scheduling/timing mathematically exact
 - implement OSC time tags (does osc.el support this?)
-- test out ~tabulated-list-mode~ to see if it would work for tracker-mode.
+- look into ~tabulated-list-mode~ to see if it would work for tracker-mode.
 - make it so Emacs' built-in comment functions don't break the interface when used (i.e. how ~M-;~ will comment out the step number instead of just the code in that step).
 - optionally hide the non-active patterns
 - "tracker follow" function (shows up as "F" in the status field); automatically switches currently viewed pattern when the tracker is playing
@@ -57,7 +61,8 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 - add functions to make modifying other parts of the sequence easier
 - preprocess steps when confirming them
   - interpret vars prefixed with % as pattern- and/or step-local.
-- add a license
+- make a transient map (~set-transient-map~) for changing numbers more quickly, and then rebind ~tracker-{increase,decrease}-number~ to bindings less likely to clobber others.
+- optional integration with cl-patterns/thundersnow (not completely sure what this would entail? maybe export as pattern/eseq/etc?).
 
 * See also
 
