@@ -742,10 +742,11 @@ See also: `tracker-latch-toggle'"
     (define-key map (kbd "C-c C-d") 'tracker-delete-pattern)
     (define-key map (kbd "C-c C-c") 'tracker-confirm-step)
     (define-key map (kbd "C-c C-k") 'tracker-revert-step)
-    (define-key map (kbd "M-g b") 'tracker-goto-bpm)
-    (define-key map (kbd "M-g s") 'tracker-goto-step)
     (define-key map (kbd "M-g t") 'tracker-goto-title)
+    (define-key map (kbd "M-g b") 'tracker-goto-bpm)
+    (define-key map (kbd "M-g S") 'tracker-goto-scratch)
     (define-key map (kbd "M-g p") 'tracker-goto-pattern) ; this overrides the original M-g p action, but i don't think you'll use it in tracker mode anyway... (?)
+    (define-key map (kbd "M-g s") 'tracker-goto-step)
     map)
   "Keymap for `tracker-mode'.")
 
