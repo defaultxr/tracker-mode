@@ -305,11 +305,11 @@
 
 (defun tracker-ui-element (start end &optional ro-message additional-properties)
   "Write a tracker interface element to the current buffer, at point."
-  (let ((intangible (getf additional-properties additional-properties (gensym)))
+  (let ((intangible (cl-getf additional-properties additional-properties (gensym)))
         (props `(read-only ,(or ro-message "Cannot edit tracker-mode template") ,@additional-properties)))
-    (set-text-properties start (+ start 1) (list* 'cursor-intangible intangible props))
-    (set-text-properties (+ start 1) (- end 1) (list* 'cursor-intangible intangible props))
-    (set-text-properties (- end 1) end (list* 'rear-nonsticky t props))))
+    (set-text-properties start (+ start 1) (cl-list* 'cursor-intangible intangible props))
+    (set-text-properties (+ start 1) (- end 1) (cl-list* 'cursor-intangible intangible props))
+    (set-text-properties (- end 1) end (cl-list* 'rear-nonsticky t props))))
 
 (defun tracker-add-ui-element (text &optional ro-message additional-properties)
   "Search for TEXT, and if it exists, propertize it as a UI element. If it does not exist, insert it as a UI element. Returns t if the text was inserted, or nil if it was already there."
