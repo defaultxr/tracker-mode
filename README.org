@@ -68,3 +68,7 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 
 - [[https://github.com/defaultxr/piano-mode][piano-mode]], my work-in-progress minor mode that turns your computer keyboard into a musical keyboard similar to what some DAWs do. Note that this is in major need of an update, as it doesn't really work very well at the moment...
 - [[https://github.com/defaultxr/cl-patterns][cl-patterns]], my Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptrack~.
+
+- [[https://www.youtube.com/watch?v=9YOigs1lYRY][etracker]], Chun Lee's Emacs tracker mode for sequencing OSC messages; a major inspiration for tracker-mode.
+
+- [[https://emacsconf.org/2020/talks/35/][zmusic]], a simple Emacs-based sequencer.
