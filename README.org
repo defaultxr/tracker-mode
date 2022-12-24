@@ -1,4 +1,5 @@
 #+TITLE: tracker-mode
+#+DESCRIPTION: A tracker-inspired livecodable music sequencer for Emacs.
 
 A tracker-inspired livecodable music sequencer for Emacs.
 
