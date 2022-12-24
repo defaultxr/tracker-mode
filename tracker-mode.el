@@ -4,7 +4,7 @@
 
 ;; Author: modula t. <defaultxr at gmail dot com>
 ;; Homepage: https://github.com/defaultxr/tracker-mode
-;; Version: 0.7
+;; Version: 0.7 ; FIX: increase this since it hasn't changed since 2020
 ;; Keywords: multimedia
 ;; Package-Requires: ((osc "0.4") (emacs "25.1"))
 
@@ -134,7 +134,7 @@
   (interactive)
   (tracker-goto-pattern (tracker-playing-pattern)))
 
-(defun tracker-goto-scratch ()
+(defun tracker-goto-scratch () ; FIX: reimplement scratch
   "Place the point at the beginning of the scratch field."
   (interactive)
   (goto-char (point-min))
@@ -497,7 +497,7 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
       (when-let ((c-step (tracker-confirmed-step step pattern)))
         (condition-case err (funcall c-step)
           (error
-           (message "Tracker got a %s when attempting to run step %d in pattern %d."
+           (message "Tracker got a %s when attempting to run step %d in pattern %d." ; FIX: improve error reporting
                     (car err) step pattern)
            (tracker-mark-step step pattern 'error))))
       (tracker-update-header))))
@@ -778,3 +778,11 @@ See also: `tracker-latch-toggle'"
 (provide 'tracker-mode)
 
 ;;; tracker-mode.el ends here
+
+;;; NOTES / scratch:
+;; https://stackoverflow.com/questions/9775201/emacs-font-lock-explanation
+;; https://www.reddit.com/r/emacs/comments/tzwk9o/how_do_i_make_rainbowblocks_not_override_default/
+;; https://emacs.stackexchange.com/questions/5400/fontify-a-region-of-a-buffer-with-another-major-mode
+;; https://emacs.stackexchange.com/questions/7568/use-font-lock-mode-on-only-part-of-buffer
+;; https://stackoverflow.com/questions/60622878/is-it-possible-to-inhibit-font-locking-for-a-specific-buffer-region
+;; http://blog.josephwilk.net/art/emacs-as-a-musical-instrument.html
