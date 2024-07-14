@@ -7,19 +7,87 @@ Inspired by Chun Lee's "[[http://www.youtube.com/watch?v=9YOigs1lYRY][etracker]]
 
 Tracker-mode is a sequencer for Emacs loosely modelled after traditional trackers. At the moment, patterns can only have a single column, and each step in the sequence must be elisp code which is run on that step. Obviously since arbitrary code can be run on each step, the sky is theoretically the limit with what you can do, however writing raw elisp is perhaps not the fastest way to compose music. In the future I'd like to address both of these deficiencies to make tracker-mode faster and more fun to use.
 
+* Installation
+
+To install and load tracker-mode, run the following Elisp code (optionally adding them to your init.el as well).
+
+Ensure the directory containing ~tracker-mode.el~ is in your ~load-path~:
+
+#+begin_src elisp
+  (add-to-list 'load-path "/path/to/tracker-mode/") ; replace this with the location you downloaded tracker-mode to.
+#+end_src
+
+Load tracker-mode:
+
+#+begin_src elisp
+  (require 'tracker-mode)
+#+end_src
+
+(Optional) Set the port that OSC messages should be sent to:
+
+#+begin_src elisp
+  (setq tracker-osc-port 4444)
+#+end_src
+
+(Optional) Define some convenience aliases. See the [[*Suggested Aliases]] section below for a way to make this easier.
+
 * Usage
 
-To load tracker-mode, ensure the directory containing ~tracker-mode.el~ is in your ~load-path~, and then type ~M-: (require 'tracker-mode) RET~.
+To start a new track, use ~M-x tracker~, which will create a new buffer and activate the mode.
 
-To start a new track, type ~M-x tracker~, which will create a new buffer and activate the mode. Alternatively, you can load a saved tracker-mode project by opening a file with a ~.trk~ or ~.track~ file extension.
+Alternatively, if tracker-mode is loaded and you've previously saved a tracker-mode project with a ~.trk~ or ~.track~ file extension, simply opening the file will automatically start tracker-mode for that buffer.
 
-To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished editing the step, press ~C-c C-c~ to confirm and apply your edits to the step. To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
+To use the tracker, place the point at the end of a line beginning with three digits (i.e. ~000~). The point should be two spaces after the last digit. An easy way to make sure you're at the right position is to type ~C-a~, which is redefined in tracker-mode to move to the start of the step. Type your elisp code, and then when you're finished editing the step, press ~C-c C-c~ to confirm and apply your edits to the step.
 
-You can use ~C-c C-i~ to insert a new pattern, and ~C-c C-d~ to delete the pattern under point. ~M-up~ and ~M-down~ will increase or decrease the number under the point (this is useful, for example, if you want to gradually increase the BPM without manually having to retype each number).
+To begin playing the sequence, press ~C-c C-s~. Continue editing more steps, ensuring you press ~C-c C-c~ to confirm each edit. When you're done, press ~C-c C-s~ again to stop.
 
-To actually generate sound, you'll likely either want to use OSC (open sound control) via Emacs' osc.el which is currently required by this library, or one of the provided convenience functions to interface with SuperCollider (i.e. ~tracker-sc-synth~ which triggers a SuperCollider synth). Emacs itself can also play sound on some systems with the ~play-sound~ function.
+You can use ~C-c C-i~ to insert a new pattern, and ~C-c C-d~ to delete the pattern under point. ~M-up~ and ~M-down~ will increase or decrease the number under the point. This is useful, for example, if you want to gradually increase the BPM without having to manually retype the number each time.
 
-I've tried to make tracker-mode as robust as possible, so errors that occur in a step will be caught and won't cause it to stop playing, however it is likely still possible to break playback accidentally if you remove part of the interface that tracker-mode is expecting to be there. In the future I'll try to make it even more fail-safe but for now it's probably best to just not make those kinds of mistakes ;^]
+To actually generate sound, it's suggested to use Open Sound Control (OSC) to send messages to another program (or hardware that supports it). Tracker-mode includes convenience functions to make this easier:
+
+# FIX: list them
+
+If you're using SuperCollider, these functions might be even more convenient:
+
+- ~tracker-sc-synth~
+
+# FIX: list them
+
+Emacs itself can play sound using the built-in ~play-sound-file~ function. However, this is not recommended for the following reasons:
+
+- Emacs will completely lock up until the sound finishes playing (not even ~C-g~ works).
+- Only certain formats of ~wav~ and ~au~ files are supported.
+- Not all platforms are supported by this function.
+
+** Note
+
+I've tried to make tracker-mode as robust as possible, so errors that occur in a step won't completely halt playback. However, it's still very easy to accidentally "break" playback by removing part of the "interface" (i.e. parts of the buffer that tracker-mode expects to find, such as the step numbers, BPM field, etc).
+
+I intend to fix this in the future and make tracker-mode even more robust and fail-safe, but for now it's probably best to simply refrain from making those kinds of mistakes ;^]
+
+* Suggested Aliases
+Tracker-mode includes various convenience functions that may be useful for writing music with code. The standard names of these functions can be quite long, so you may want to define aliases for them to make composing music faster. This is especially handy if you're composing in real time as part of a performance (i.e. livecoding).
+
+If you're feeling lazy, tracker-mode includes convenience functionality to manage these aliases for you.
+
+# FIX: describe the mapping of the alist (i.e. symbol to definition, or the reverse?)
+First, to see an alist of the suggested aliases that can be installed, run:
+: (tracker-suggested-aliases)
+
+If you don't know what a function does, you can of course use the standard ~C-h f~ binding to read its documentation.
+
+~tracker-install-suggested-aliases~ can be used to install or uninstall some or all of the suggested aliases. Note that this function will not overwrite existing functions or aliases.
+
+To install all of the aliases (skipping any whose symbols are already defined):
+: (tracker-install-suggested-aliases t)
+
+To install some of the aliases (in this case, just the aliases ~rand~ and ~retrig~):
+: (tracker-install-suggested-aliases 'rand 'retrig)
+
+To uninstall all defined aliases:
+: (tracker-install-suggested-aliases nil)
+
+Of course, to make these aliases permanent, you can simply add one of the above lines to your init.el.
 
 * Keys
 
@@ -40,36 +108,48 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 
 * Future
 
-- implement latency to improve timing
-- run the loop in its own thread rather than using timers
-- make scheduling/timing mathematically exact
-- implement OSC time tags (does osc.el support this?)
-- look into ~tabulated-list-mode~ to see if it would work for tracker-mode.
-- make it so Emacs' built-in comment functions don't break the interface when used (i.e. how ~M-;~ will comment out the step number instead of just the code in that step).
-- optionally hide the non-active patterns
-- "tracker follow" function (shows up as "F" in the status field); automatically switches currently viewed pattern when the tracker is playing
-- make a function to clone the current pattern
-- make pattern resizing function
-- when switching patterns, keep the point on the same step (or the closest one to it)
-- user should not be able to delete interface elements
-- implement "steps per beat"
-- color each Nth line's numbers (000, 004, 008, 012, 016, etc, based on the number of steps per beat)
-- "init" code: elisp that is run whenever the tracker starts to initialize variables/"loads" a song (after header but before patterns)
-- ensure it's possible to run tracker-mode in multiple buffers simultaneously
-- implement current step overlay (highlight the step number of the current step)
-- add more SuperCollider convenience functions
+- Implement latency to improve timing
+- Run the loop in its own thread rather than using timers
+- Make scheduling/timing mathematically exact
+- Implement OSC time tags (does osc.el support this?)
+- Look into ~tabulated-list-mode~ to see if it would work for tracker-mode.
+- Prevent Emacs' built-in comment functions from breaking the interface (i.e. how ~M-;~ will comment out the step number instead of just the code in that step).
+- Optionally hide the non-active patterns
+- "Scroll mode" function (shows up as "S" in the status field); automatically moves the point to the current row when the track is playing
+- "Follow mode" function (shows up as "F" in the status field); automatically switches currently viewed pattern when the track is playing
+- Pattern clone function
+- Pattern resize function
+- Keep the point on the same step (or the closest one to it) when switching patterns
+- User should not be able to delete interface elements
+- Implement "steps per beat"
+- Color each Nth line's numbers (000, 004, 008, 012, 016, etc, based on the number of steps per beat)
+- "Init" code: elisp that is run whenever the tracker starts to initialize variables/"loads" a song (after header but before patterns)
+- Ensure it's possible to run tracker-mode in multiple buffers simultaneously
+- Implement current step overlay (highlight the step number of the current step)
+- Add more convenience functions
+  - SuperCollider convenience functions
+  - Pure Data convenience functions
   - ~retrig~ - re-executes the code a certain number of times with a delay.
-- add functions to make modifying other parts of the sequence easier
-- preprocess steps when confirming them
-  - interpret vars prefixed with % as pattern- and/or step-local.
-- make a transient map (~set-transient-map~) for changing numbers more quickly, and then rebind ~tracker-{increase,decrease}-number~ to bindings less likely to clobber others.
-- optional integration with cl-patterns/thundersnow (not completely sure what this would entail? maybe export as pattern/eseq/etc?).
+- Add functions to make to modifying parts of the sequence (i.e. to allow for "self-modifying" patterns).
+- Preprocess steps when confirming them
+  - Interpret vars prefixed with ~%~ (or another character maybe?) as pattern- and/or step-local.
+- Make a transient map (~set-transient-map~) for changing numbers more quickly, and then rebind ~tracker-{increase,decrease}-number~ to bindings less likely to clobber others.
+- Optional integration with cl-patterns/thundersnow (not completely sure what this would entail? maybe export as pattern/eseq/etc?).
+- MIDI support/convenience functions? I don't think Emacs has support for MIDI, but perhaps it could work to use [[http://krellan.com/amidicat/][amidicat]] like midimacs does...
+- Fix all the bugs marked with ~FIX~ in the code.
 
-* See also
+* Similar
 
-- [[https://github.com/defaultxr/piano-mode][piano-mode]], my work-in-progress minor mode that turns your computer keyboard into a musical keyboard similar to what some DAWs do. Note that this is in major need of an update, as it doesn't really work very well at the moment...
-- [[https://github.com/defaultxr/cl-patterns][cl-patterns]], my Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptrack~.
+Other projects that are related or similar.
 
-- [[https://www.youtube.com/watch?v=9YOigs1lYRY][etracker]], Chun Lee's Emacs tracker mode for sequencing OSC messages; a major inspiration for tracker-mode.
+- [[https://github.com/defaultxr/piano-mode][piano-mode]] - My work-in-progress minor mode that turns your computer keyboard into a musical keyboard similar to what some DAWs do. Note that this is in major need of an update, as it doesn't really work very well at the moment...
 
-- [[https://emacsconf.org/2020/talks/35/][zmusic]], a simple Emacs-based sequencer.
+- [[https://github.com/defaultxr/cl-patterns][cl-patterns]] - My Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptrack~.
+
+- [[https://github.com/andreasjansson/midimacs][midimacs]] - A semi-algorithmic MIDI sequencer in Emacs Lisp.
+
+- [[https://www.youtube.com/watch?v=9YOigs1lYRY][etracker]] - Chun Lee's Emacs tracker mode for sequencing OSC messages; a major inspiration for tracker-mode.
+
+- [[https://emacsconf.org/2020/talks/35/][zmusic]] - A simple Emacs-based sequencer.
+
+- [[https://github.com/jnykopp/emaccordion][emaccordion]] - Control Emacs with MIDI.
