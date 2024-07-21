@@ -117,7 +117,8 @@
   (end-of-line))
 
 (defun tracker-goto-step (step &optional pattern)
-  "Place the point at the start of STEP in PATTERN (or the current if none specified)."
+  "Place the point at the start of STEP in PATTERN (or the current
+if none specified)."
   (interactive "NStep: ")
   (tracker-goto-pattern (or pattern (tracker-pattern-at-point)))
   (search-forward-regexp (format "^%03d. " step)))
@@ -155,7 +156,8 @@
   (tracker-goto-step tracker-current-playing-step tracker-current-playing-pattern))
 
 (defun tracker-goto-pattern (&optional pattern)
-  "Place the point at the end of PATTERN's header line, or return nil if PATTERN could not be found."
+  "Place the point at the end of PATTERN's header line, or return
+nil if PATTERN could not be found."
   (interactive "NPattern: ")
   (goto-char (point-min))
   (let ((pattern (or pattern (tracker-pattern-at-point))))
@@ -179,6 +181,8 @@
 (defun tracker-goto-previous-pattern (&optional num wrap)
   "Move point to the previous pattern."
   (interactive "p")
+  (when wrap
+    (warn "The WRAP argument is not yet implemented.")) ; FIX: implement
   (let ((num (or num 1)))
     (tracker-next-pattern (- num))))
 
@@ -234,7 +238,8 @@
                            (point-max)))))))
 
 (defun tracker-step-at-point ()
-  "Get the step number that the point is on, or nil if the point is not located on a step."
+  "Get the step number that the point is on, or nil if the point is
+not located on a step."
   (when-let ((pattern (tracker-pattern-at-point)))
     (when (save-excursion
             (search-backward (concat ";; Pattern " (number-to-string pattern) ":\n") nil t))
@@ -292,17 +297,19 @@
       (goto-char (point-min))
       (and (looking-at tracker-title-regexp)
            (progn
-             (goto-line 2)
+             (forward-line 1)
              (looking-at tracker-bpm-regexp))))))
 
 (defvar tracker-modifying-buffer-p nil
-  "True if tracker-mode is modifying the buffer and `tracker-after-change-function' should ignore changes.")
+  "True if tracker-mode is modifying the buffer and
+`tracker-after-change-function' should ignore changes.")
 
 (make-variable-buffer-local 'tracker-modifying-buffer-p)
 (set-default 'tracker-modifying-buffer-p nil)
 
 (defmacro tracker-modifying-buffer (&rest body)
-  "Run BODY with variables set to allow modifications to the tracker-mode template/UI elements."
+  "Run BODY with variables set to allow modifications to the
+tracker-mode template/UI elements."
   `(let ((tracker-modifying-buffer-p t)
          (inhibit-read-only t))
      ,@body))
@@ -316,7 +323,9 @@
     (set-text-properties (- end 1) end (cl-list* 'rear-nonsticky t props))))
 
 (defun tracker-add-ui-element (text &optional ro-message additional-properties)
-  "Search for TEXT, and if it exists, propertize it as a UI element. If it does not exist, insert it as a UI element. Returns t if the text was inserted, or nil if it was already there."
+  "Search for TEXT, and if it exists, propertize it as a UI
+element. If it does not exist, insert it as a UI element. Returns
+t if the text was inserted, or nil if it was already there."
   (let* ((inserted nil)
          (end (save-excursion (if (search-forward text nil t)
                                   (point)
@@ -329,7 +338,8 @@
     inserted))
 
 (defun tracker-propertize-patterns ()
-  "Find all patterns in the buffer and ensure their UI elements are correctly propertized.
+  "Find all patterns in the buffer and ensure their UI elements are
+correctly propertized.
 
 See also: `tracker-insert-pattern', `tracker-write-template'"
   (save-excursion
@@ -351,7 +361,8 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
                               "Cannot edit step markers; use `tracker-resize-pattern' to change the number of steps in a pattern"))))))
 
 (defun tracker-write-template ()
-  "Write the default template for the tracker, or propertize it if it already exists."
+  "Write the default template for the tracker, or propertize it if
+it already exists."
   (tracker-modifying-buffer
    (tracker-without-undo
     (save-excursion
@@ -415,6 +426,7 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
 
 (defun tracker-after-change-function (start end length)
   "Mark the associated step as modified after the buffer is modified."
+  (ignore end length)
   (unless tracker-modifying-buffer-p
     (save-excursion
       (goto-char start)
@@ -424,7 +436,9 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
           (tracker-mark-step step pattern 'modified))))))
 
 (defun tracker-mark-step (step pattern type)
-  "Mark STEP in PATTERN as modified (M), erroring (E), or confirmed (blank).  TYPE should be either 'error, 'modified, or 'confirmed."
+  "Mark STEP in PATTERN as modified (M), erroring (E), or
+confirmed (blank). TYPE should be either \\='error, \\='modified,
+or \\='confirmed."
   (unless (eql type 'modified)
     (buffer-disable-undo))
   (tracker-modifying-buffer
@@ -451,11 +465,17 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
   (setf tracker-confirmed-steps (make-hash-table :test 'equal)))
 
 (defun tracker-step-id (step pattern &optional key)
-  "Get a key for the `tracker-confirmed-steps' hash to access STEP in PATTERN.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
+  "Get a key for the `tracker-confirmed-steps' hash to access STEP
+in PATTERN. KEY, if provided, specifies a different datum about
+the step, for example \\='string is the step as an unparsed
+string."
   (list pattern step key))
 
 (defun tracker-confirmed-step (step pattern &optional key)
-  "Get the confirmed step STEP in PATTERN from the `tracker-confirmed-steps' hash.  KEY, if provided, specifies a different datum about the step, for example 'string is the step as an unparsed string."
+  "Get the confirmed step STEP in PATTERN from the
+`tracker-confirmed-steps' hash. KEY, if provided, specifies a
+different datum about the step, for example \\='string is the
+step as an unparsed string."
   (gethash (tracker-step-id step pattern key) tracker-confirmed-steps))
 
 (defun tracker-confirmed-step-set (code step pattern &optional key)
@@ -507,9 +527,12 @@ See also: `tracker-insert-pattern', `tracker-write-template'"
       (tracker-update-header))))
 
 (defun tracker-loop (step pattern buffer)
-  "The main loop of the tracker; play STEP in PATTERN in BUFFER with `tracker-step', then queue the next iteration of the loop.
+  "The main loop of the tracker; play STEP in PATTERN in BUFFER with
+`tracker-step', then queue the next iteration of the loop.
 
-Note that this is an \"internal\" function; users should start/stop the tracker with C-c C-s or `tracker-play-or-stop' instead."
+Note that this is an \"internal\" function; users should
+start/stop the tracker with `tracker-play-or-stop' (bound to C-c
+C-s by default) instead."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (when tracker-playing-p
@@ -530,9 +553,8 @@ Note that this is an \"internal\" function; users should start/stop the tracker 
   "Insert STEPS additional steps at point, numbered starting at START."
   (let ((start (or start 0)))
     (dotimes (step steps)
-      (let ((start-point (point)))
-        (insert (format "%03d  \n" (+ start step)))
-        (tracker-ui-element (- (point) 7) (1- (point)) "Cannot edit step markers; use `tracker-resize-pattern' to change the number of steps in a pattern")))))
+      (insert (format "%03d  \n" (+ start step)))
+      (tracker-ui-element (- (point) 7) (1- (point)) "Cannot edit step markers; use `tracker-resize-pattern' to change the number of steps in a pattern"))))
 
 (defun tracker-insert-pattern (&optional size) ; FIX: this inserts after the current pattern, but the pattern number is wrong if it's not the last pattern in the buffer
   "Insert a new pattern after the current one containing SIZE steps."
@@ -596,7 +618,9 @@ Note that this is an \"internal\" function; users should start/stop the tracker 
                         (point)))))))
 
 (defun tracker-latch (&optional enable)
-  "Turn on or off latching of the currently-playing pattern.  ENABLE should be t or a positive number to turn on, or nil or a non-positive number to turn off.
+  "Turn on or off latching of the currently-playing pattern. ENABLE
+should be t or a positive number to turn on, or nil or a
+non-positive number to turn off.
 
 See also: `tracker-latch-toggle'"
   (interactive "p")
@@ -724,7 +748,8 @@ See also: `tracker-latch-toggle'"
   (tracker-change-number (- (or decrease 1))))
 
 (defun tracker-back-to-indent ()
-  "Move point back to the beginning of the line, skipping forward to the start of the step input if on a step."
+  "Move point back to the beginning of the line, skipping forward to
+the start of the step input if on a step."
   (interactive)
   (beginning-of-line)
   (when (looking-at tracker-step-regexp)
