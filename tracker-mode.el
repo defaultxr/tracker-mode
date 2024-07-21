@@ -4,7 +4,7 @@
 
 ;; Author: modula t. <defaultxr at gmail dot com>
 ;; Homepage: https://github.com/defaultxr/tracker-mode
-;; Version: 0.7 ; FIX: increase this since it hasn't changed since 2020
+;; Version: 0.8
 ;; Keywords: multimedia
 ;; Package-Requires: ((osc "0.4") (emacs "25.1"))
 
@@ -27,26 +27,30 @@
 
 ;;; Commentary:
 ;;
-;; This package provides a major mode for Emacs for sequencing of code
-;; emulates (or attempts to) music trackers like Renoise,
-;; MilkyTracker, or SunVox.
+;; This package provides a major mode for Emacs designed for music
+;; composition by way of a "tracker-like" interface. It is inspired by
+;; Chun Lee's "etracker", as well as software like Renoise, Furnace,
+;; and SunVox.
 ;;
 ;; A tracker is a sequencer used for making music.  In a tracker,
 ;; musical data is typically represented as a grid of rows and
 ;; columns.  Each column usually represents a separate instrument or
 ;; channel, and each row represents a step in the sequence.
 ;;
-;; Tracker-Mode can not (yet) handle multiple channels simultaneously,
-;; however it does have the ability to save multiple patterns and
-;; switch between them.
+;; Tracker-Mode can not (yet) handle multiple channels (columns)
+;; simultaneously, however it does have the ability to save multiple
+;; patterns and switch between them.
 ;;
-;; Tracker-Mode does not produce sound on its own, as it is just a
-;; sequencer that triggers synthesizers by sending OSC messages.
-;; Right now only SuperCollider is being tested as its sound engine,
-;; but it should be possible to send to other synths as well with some
-;; minor hacking.
+;; Note that Tracker-Mode does not produce sound on its own, as it is
+;; just a sequencer that triggers synthesizers by sending Open Sound
+;; Control (OSC) messages. Right now only SuperCollider is being
+;; tested as its sound engine, but it should be possible to send to
+;; other synths as well with some minor hacking.
 
 ;;; Code:
+
+;; FIX: C-a moves to the wrong location, it should jump to the start of the step under point but it goes to the previous step instead...
+;; FIX: reindent this for emacs' new indentation style (i.e. for "if"s)
 
 ;;; load stuff
 
@@ -89,9 +93,9 @@
 (defvar tracker-step-regexp "^\\([0-9][0-9][0-9]\\)\\(.\\) "
   "The regexp used to match against pattern steps.")
 
+;; there might be a better way to do this. it's only used when creating a new tracker-mode buffer
 (defmacro tracker-without-undo (&rest body)
   "Perform BODY without modifying the buffer's undo list."
-  ;; there might be a better way to do this...
   `(progn
      (buffer-disable-undo)
      ,@body
@@ -695,6 +699,7 @@ See also: `tracker-latch-toggle'"
 
 ;;; change numbers
 
+;; FIX: should this function automatically re-confirm the step after being run?
 (defun tracker-change-number (change)
   "Increase or decrease a number under the point by CHANGE."
   (interactive "p")
