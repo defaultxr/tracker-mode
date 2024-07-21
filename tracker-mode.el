@@ -171,12 +171,12 @@ nil if PATTERN could not be found."
          (desired (+ num (or (tracker-pattern-at-point) 0))))
     (if wrap
         (tracker-goto-pattern (mod desired (tracker-patterns-count)))
-      (cond ((>= desired (tracker-patterns-count))
-             (goto-char (point-max)))
-            ((< desired 0)
-             (goto-char (point-min)))
-            (t
-             (tracker-goto-pattern desired))))))
+        (cond ((>= desired (tracker-patterns-count))
+               (goto-char (point-max)))
+              ((< desired 0)
+               (goto-char (point-min)))
+              (t
+               (tracker-goto-pattern desired))))))
 
 (defun tracker-goto-previous-pattern (&optional num wrap)
   "Move point to the previous pattern."
@@ -329,10 +329,10 @@ t if the text was inserted, or nil if it was already there."
   (let* ((inserted nil)
          (end (save-excursion (if (search-forward text nil t)
                                   (point)
-                                (progn
-                                  (insert text)
-                                  (setq inserted t)
-                                  (point))))))
+                                  (progn
+                                    (insert text)
+                                    (setq inserted t)
+                                    (point))))))
     (tracker-ui-element (- end (length text)) end ro-message additional-properties)
     (goto-char end)
     inserted))
@@ -377,7 +377,7 @@ it already exists."
       (goto-char (point-min))
       (if (search-forward-regexp tracker-pattern-regexp nil t)
           (tracker-propertize-patterns)
-        (tracker-insert-pattern 16))))))
+          (tracker-insert-pattern 16))))))
 
 (defface tracker-header-heading-face
   '((t :inherit font-lock-keyword-face))
@@ -387,10 +387,10 @@ it already exists."
 (defun tracker-update-header ()
   "Update the header line of the tracker buffer."
   (cl-flet ((heading (string &optional help-echo)
-                     (apply 'propertize string
-                            'face 'tracker-header-heading-face
-                            (when help-echo
-                              (list 'help-echo help-echo)))))
+              (apply 'propertize string
+                     'face 'tracker-header-heading-face
+                     (when help-echo
+                       (list 'help-echo help-echo)))))
     (setf header-line-format (concat (heading "Track:" "The name of the track.")
                                      " "
                                      (tracker-track-name)
@@ -406,7 +406,7 @@ it already exists."
                                      (heading (if tracker-latched-p "L" " ")
                                               (if tracker-latched-p
                                                   "Latch on."
-                                                "Latch off."))
+                                                  "Latch off."))
                                      " "
                                      (heading "Pattern:" "Currently-playing pattern.")
                                      " "
@@ -483,7 +483,7 @@ step as an unparsed string."
     (error "KEY is not supported when setting `tracker-confirmed-step'"))
   (let ((code (if (string= "" code)
                   "nil"
-                code)))
+                  code)))
     (puthash (tracker-step-id step pattern)
              (eval `(lambda () ,(read code)))
              tracker-confirmed-steps)
@@ -544,7 +544,7 @@ C-s by default) instead."
                  (next-pattern (if (or tracker-latched-p
                                        (not (eql next-step 0)))
                                    pattern
-                                 (mod (1+ pattern) (tracker-patterns-count)))))
+                                   (mod (1+ pattern) (tracker-patterns-count)))))
             (run-with-timer delay nil 'tracker-loop next-step next-pattern buffer)))))))
 
 ;;; pattern editing
@@ -561,13 +561,13 @@ C-s by default) instead."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
-     (list (read-number "Number of steps: " 16))))
+       (list (read-number "Number of steps: " 16))))
   (let ((inhibit-read-only t)
         (number (tracker-patterns-count)))
     (save-excursion
       (if (= 0 (tracker-patterns-count))
           (goto-char (point-max))
-        (tracker-goto-end-of-pattern))
+          (tracker-goto-end-of-pattern))
       (or (search-forward "\n\n" nil t)
           (progn
             (ignore-errors (forward-char 2))
@@ -609,13 +609,13 @@ C-s by default) instead."
              (end-of-line)
              (insert "\n"))
            (tracker-insert-steps (- steps current-num-steps) current-num-steps))
-       (delete-region (save-excursion
-                        (tracker-goto-step steps)
-                        (beginning-of-line)
-                        (1- (point)))
-                      (save-excursion
-                        (tracker-goto-end-of-pattern)
-                        (point)))))))
+         (delete-region (save-excursion
+                          (tracker-goto-step steps)
+                          (beginning-of-line)
+                          (1- (point)))
+                        (save-excursion
+                          (tracker-goto-end-of-pattern)
+                          (point)))))))
 
 (defun tracker-latch (&optional enable)
   "Turn on or off latching of the currently-playing pattern. ENABLE
@@ -626,11 +626,11 @@ See also: `tracker-latch-toggle'"
   (interactive "p")
   (setf tracker-latched-p (if (booleanp enable)
                               enable
-                            (if (> enable 0) t nil)))
+                              (if (> enable 0) t nil)))
   (tracker-update-header)
   (message (if tracker-latched-p
                (concat "Latched pattern " (number-to-string tracker-current-playing-pattern) ".")
-             "Tracker unlatched.")))
+               "Tracker unlatched.")))
 
 (defun tracker-latch-toggle ()
   "Toggle whether to loop the current pattern."
@@ -652,7 +652,7 @@ See also: `tracker-latch-toggle'"
                                  (progn
                                    (beginning-of-line)
                                    (point))
-                               (point-max)))))
+                                 (point-max)))))
          (max start
               (or (when (search-forward-regexp tracker-step-regexp next-pat-pos t)
                     (backward-sexp 2)
@@ -719,7 +719,7 @@ See also: `tracker-latch-toggle'"
   (interactive)
   (if tracker-playing-p
       (tracker-stop)
-    (tracker-play)))
+      (tracker-play)))
 
 ;;; change numbers
 
