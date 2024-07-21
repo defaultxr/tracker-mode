@@ -369,7 +369,7 @@ it already exists."
       (goto-char (point-min))
       (when (and (/= (point-min) (point-max))
                  (not (tracker-buffer-p)))
-        (error "This does not appear to be a tracker-mode-formatted buffer.  Try M-x tracker to create and initialize a new tracker-mode buffer"))
+        (error "This does not appear to be a tracker-mode-formatted buffer. Try M-x tracker to create and initialize a new tracker-mode buffer"))
       (when (tracker-add-ui-element ";; Track: ")
         (insert "Untitled"))
       (when (tracker-add-ui-element "\n;; BPM: ")
