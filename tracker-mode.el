@@ -626,7 +626,7 @@ See also: `tracker-latch-toggle'"
   (interactive "p")
   (setf tracker-latched-p (if (booleanp enable)
                               enable
-                              (if (> enable 0) t nil)))
+                              (> enable 0)))
   (tracker-update-header)
   (message (if tracker-latched-p
                (concat "Latched pattern " (number-to-string tracker-current-playing-pattern) ".")
