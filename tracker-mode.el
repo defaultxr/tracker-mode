@@ -184,7 +184,7 @@ nil if PATTERN could not be found."
   (when wrap
     (warn "The WRAP argument is not yet implemented.")) ; FIX: implement
   (let ((num (or num 1)))
-    (tracker-next-pattern (- num))))
+    (tracker-goto-next-pattern (- num))))
 
 ;;; functions to get data
 
