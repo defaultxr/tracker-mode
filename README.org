@@ -136,7 +136,12 @@ Of course, to make these aliases permanent, you can simply add one of the above 
 - Make a transient map (~set-transient-map~) for changing numbers more quickly, and then rebind ~tracker-{increase,decrease}-number~ to bindings less likely to clobber others.
 - Optional integration with cl-patterns/thundersnow (not completely sure what this would entail? maybe export as pattern/eseq/etc?).
 - MIDI support/convenience functions? I don't think Emacs has support for MIDI, but perhaps it could work to use [[http://krellan.com/amidicat/][amidicat]] like midimacs does...
+- "Auto-confirm" mode; automatically confirm the step being edited when the point is moved outside of it and there are no syntax errors.
 - Fix all the bugs marked with ~FIX~ in the code.
+- Look into [[https://www.reddit.com/r/emacs/comments/1es9pa8/major_mode_that_hands_off_to_another/][Major mode that hands off to another?]] and/or [[https://github.com/dgutov/mmm-mode][mmm-mode]] and/or [[https://github.com/polymode/polymode][polymode]]
+- Look into the Track-Changes library introduced with Emacs 30.1
+- Look into [[https://gitlab.com/dto/cell-mode][cell-mode]] (previously [[http://dto.freeshell.org:80/notebook/CellMode.html][cell.el]]: [[https://web.archive.org/web/20071021062224/http://dto.freeshell.org:80/notebook/CellMode.html][archived website]], [[https://web.archive.org/web/20071021062224/http://dto.freeshell.org:80/notebook/CellMode.html][archived source]])
+  - and [[http://dto.freeshell.org/e/eon.el][eon.el]] ([[https://web.archive.org/web/20071018111208/http://dto.freeshell.org/notebook/Eon.html][archived website]], [[https://web.archive.org/web/20071022103435/http://dto.freeshell.org/e/eon.el][archived source]])
 
 * Similar
 
@@ -146,10 +151,14 @@ Other projects that are related or similar.
 
 - [[https://github.com/defaultxr/cl-patterns][cl-patterns]] - My Common Lisp algorithmic pattern sequencing library. Much more advanced than tracker-mode and it includes a tracker-inspired pattern of its own called ~ptrack~.
 
-- [[https://github.com/andreasjansson/midimacs][midimacs]] - A semi-algorithmic MIDI sequencer in Emacs Lisp.
+- [[https://www.youtube.com/watch?v=9YOigs1lYRY][etracker]] - Chun Lee's Emacs tracker mode for sequencing OSC messages. This video was one of the primary inspirations for tracker-mode.
 
-- [[https://www.youtube.com/watch?v=9YOigs1lYRY][etracker]] - Chun Lee's Emacs tracker mode for sequencing OSC messages; a major inspiration for tracker-mode.
+- [[https://github.com/andreasjansson/midimacs][midimacs]] - A semi-algorithmic MIDI sequencer in Emacs Lisp.
 
 - [[https://emacsconf.org/2020/talks/35/][zmusic]] - A simple Emacs-based sequencer.
 
 - [[https://github.com/jnykopp/emaccordion][emaccordion]] - Control Emacs with MIDI.
+
+- [[https://gitlab.com/dto/mosaic][mosaic]] - A system for musical concatenative synthesis in Emacs with a backend in S7 Scheme as an extension to the [[https://ccrma.stanford.edu/software/snd/][Snd sound editor]].
+
+- [[https://gitlab.com/dto/cell-mode][cell-mode]] - Object-oriented spreadsheet mode for Emacs. Repo includes a link to a talk with a demo video of cell-mode being used to compose music.

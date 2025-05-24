@@ -50,7 +50,6 @@
 ;;; Code:
 
 ;; FIX: C-a moves to the wrong location, it should jump to the start of the step under point but it goes to the previous step instead...
-;; FIX: reindent this for emacs' new indentation style (i.e. for "if"s)
 
 ;;; load stuff
 
