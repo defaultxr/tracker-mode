@@ -593,7 +593,7 @@ C-s by default) instead."
                            (search-forward-regexp tracker-pattern-regexp nil t)
                            (beginning-of-line)
                            (point)))))
-    (message "The point does not appear to be in a pattern.")))
+    (user-error "The point does not appear to be in a pattern.")))
 
 (defun tracker-resize-pattern (steps)
   "Add or remove steps to the pattern under point to make it STEPS steps in length."
@@ -685,7 +685,7 @@ See also: `tracker-latch-toggle'"
                (setf tracker-bpm (string-to-number (match-string-no-properties 1)))
                (tracker-update-header))
               (t
-               (message "The point does not appear to be on a step.")))))))
+               (user-error "The point does not appear to be on a step.")))))))
 
 (defun tracker-revert-step (&optional step pattern)
   "Undo edits to STEP in PATTERN, reverting back to its last confirmed code."
