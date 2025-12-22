@@ -65,30 +65,6 @@ I've tried to make tracker-mode as robust as possible, so errors that occur in a
 
 I intend to fix this in the future and make tracker-mode even more robust and fail-safe, but for now it's probably best to simply refrain from making those kinds of mistakes ;^]
 
-* Suggested Aliases
-Tracker-mode includes various convenience functions that may be useful for writing music with code. The standard names of these functions can be quite long, so you may want to define aliases for them to make composing music faster. This is especially handy if you're composing in real time as part of a performance (i.e. livecoding).
-
-If you're feeling lazy, tracker-mode includes convenience functionality to manage these aliases for you.
-
-# FIX: describe the mapping of the alist (i.e. symbol to definition, or the reverse?)
-First, to see an alist of the suggested aliases that can be installed, run:
-: (tracker-suggested-aliases)
-
-If you don't know what a function does, you can of course use the standard ~C-h f~ binding to read its documentation.
-
-~tracker-install-suggested-aliases~ can be used to install or uninstall some or all of the suggested aliases. Note that this function will not overwrite existing functions or aliases.
-
-To install all of the aliases (skipping any whose symbols are already defined):
-: (tracker-install-suggested-aliases t)
-
-To install some of the aliases (in this case, just the aliases ~rand~ and ~retrig~):
-: (tracker-install-suggested-aliases 'rand 'retrig)
-
-To uninstall all defined aliases:
-: (tracker-install-suggested-aliases nil)
-
-Of course, to make these aliases permanent, you can simply add one of the above lines to your init.el.
-
 * Keys
 
 - ~M-down~ - ~tracker-decrease-number~ - decreases the number under the point.
